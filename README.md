@@ -46,14 +46,14 @@ async function main() {
 }
 ```
 Render to texture:
-```
+```javascript
 ...
 const texture = ctx.tex(1024, 1024);
 texture[0].draw(model, prg);	//Renders to texture mip level 0.
 ...
 ```
 Multiple render targets:
-```
+```javascript
 ...
 const { tex, rbo, fbo } = ctx;
 const tex1 = tex(512, 512, { fmt: 'rgba16f' });
@@ -68,7 +68,7 @@ fb.draw(model, prg);
 ...
 ```
 Setting multiple uniform blocks at once:
-```
+```javascript
 ...
 const uni = ctx.ubo();
 
