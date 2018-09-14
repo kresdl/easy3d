@@ -8,7 +8,8 @@ A 3D framework written by [kresdl](https://www.kresdl.com)
 `npm install easy3d`
 
 ## Usage
-It is advisable to build an easy3d application with webpack to avoid polution of global scope and import only what is necessary.### Samples
+It is advisable to build an easy3d application with webpack to avoid polution of global scope and import only what is necessary.
+### Samples
 A simple application might look like this:
 ```javascript
 import { Ctx, Camera, vec, mat } from 'easy3d';
