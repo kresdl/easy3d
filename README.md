@@ -36,7 +36,7 @@ async function main() {
 	const fshader = await fs.url('/data/f.glsl');
 	const program = prg(vshader, fshader);	//Create program from shaders
 	const monkey = await model.url('/data/monkey.obj');	//Load model
-	const uniforms = ubo();	//Create framebuffer
+	const uniforms = ubo();	//Create uniformbuffer
 
 	const cam = new Camera([300, 400, 1000], [0, 0, 0], 1, 20, 1000, 1);
 
@@ -58,7 +58,7 @@ Multiple render targets:
 const { tex, rbo, fbo } = ctx;
 const tex1 = tex(512, 512, { fmt: 'rgba16f' });
 const tex2 = tex(512, 512);
-const zbuf = rbo(512, 512);	//Defaults to gl.DEPTH24_STENCIL8.
+const zbuf = rbo(512, 512);	//Create renderbuffer. Defaults to gl.DEPTH24_STENCIL8.
 const fb = fbo();
 
 fb[0] = tex1[0];	//Attaches tex1 mip level 0 to framebuffer color attachment point 0.
