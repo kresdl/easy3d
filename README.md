@@ -1,24 +1,14 @@
-
-
 # easy3d
 ![npm](https://img.shields.io/npm/v/easy3d.svg)
 ![npm](https://img.shields.io/npm/dm/easy3d.svg)
 
 A 3D framework written by [kresdl](https://www.kresdl.com)
 
-
 ## Installation
 `npm install easy3d`
 
-
 ## Usage
-It is preferrable to use easy3d with webpack.
-For a fast setup, include the module as a dependency in the entry array before your application.
-```javascript
-entry: ['easy3d', 'easy3d/sample/js/sample.js']
-```
-
-### Samples
+It is advisable to build an easy3d application with webpack to avoid polution of global scope and import only what is necessary.### Samples
 A simple application might look like this:
 ```javascript
 import { Ctx, Camera, vec, mat } from 'easy3d';
@@ -86,8 +76,6 @@ Object.assign(uni, {
 });
 ...
 ```
-
-
 ## GL wrappers
 Abstraction classes for WebGL resources and data management.
 ### Ctx
@@ -206,6 +194,7 @@ gl.UNSIGNED_SHORT_5_5_5_1, gl.UNSIGNED_SHORT or ext.HALF_FLOAT_OES.
 * HTMLCanvasElement
 * HTMLVideoElement
 * ImageBitmap
+
 (Source: [MDN](https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API))
 
 `properties`: Object containing texture settings.
