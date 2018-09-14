@@ -1,0 +1,24 @@
+{
+  "name": "easy3d",
+  "version": "1.0.0",
+  "description": "Web 3D framework",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kresdl/easy3d.git"
+  },
+  "keywords": [
+    "3d",
+    "webgl",
+    "gl",
+    "opengl",
+    "vector",
+    "matrix"
+  ],
+  "author": {
+    "name": "Peter Hallström",
+    "email": "peter.hallstrom@gmail.com",
+    "url": "kresdl.com"
+  },
+  "homepage": "https://github.com/kresdl/easy3d#readme",
+  "license": "ISC"
+}
