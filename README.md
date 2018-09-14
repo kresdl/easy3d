@@ -1,14 +1,16 @@
+
+
 # easy3d
 ![npm](https://img.shields.io/npm/v/easy3d.svg)
 ![npm](https://img.shields.io/npm/dm/easy3d.svg)
 
 A 3D framework written by [kresdl](https://www.kresdl.com)
 
----
+
 ## Installation
 `npm install easy3d`
 
----
+
 ## Usage
 It is preferrable to use easy3d with webpack.
 For a fast setup, include the module as a dependency in the entry array before your application.
@@ -85,7 +87,7 @@ Object.assign(uni, {
 ...
 ```
 
----
+
 ## GL wrappers
 Abstraction classes for WebGL resources and data management.
 ### Ctx
@@ -93,6 +95,7 @@ WebGL context
 ##### Constructor
 ###### `new Ctx(canvas)`
 `canvas`: HTMLCanvasElement
+
 Throws `Error` if WebGL failed at creation.
 ##### Properties
 ###### `gl`
@@ -108,57 +111,82 @@ Can for copy operations conveniently be used with paste [program](#prg) obtained
 ##### Methods
 ###### `zTest(enable)`
 Enables "less or equal"-depth test and sets clear depth to 1.0.
+
 `enable`: Boolean
 ###### `blend(enable)`
 Enables overlay blending.
+
 `enable`: Boolean
 ###### `draw(model, prg)`
 Renders [model](#model) using specified [program](#prg).
+
 `model`: [Model](#model)
+
 `prg`: [Program](#prg)
 ###### `clear([color[, includedepth]])`
 Clears screen.
+
 `color`: Clear color as a component array. Default is `[0, 0, 0, 1]`.
+
 `includedepth`: Clear depth buffer also. Default is `true`.
 ###### `dispose()`
 Deletes all associated resources.
 ###### `ext(name)`
 Enables a specific [extension](#extensions).
+
 `name`: [Extension](#extensions) name
 ###### `fbo()`
 Creates a [framebuffer](#fbo).
 ###### `fs(source)`
 Creates a [fragment shader](#fs) from source.
+
 `source`: Shader source string
+
 Throws `Error` if shader failed to compile.
 ###### `fs.url(src)`
 Returns a promise that is resolved with a [fragment shader](#fs).
+
 `src`: URL of shader source.
+
 Throws `Error` if shader failed to compile.
 ###### `model(vertices, indices, vertexLayout)`
 Creates a [model](#model).
+
 `vertices`: Vertices as an array of float.
+
 `indices`: Indices as an array of integers.
+
 `vertexLayout`: An integer array specifying the number of floats each attribute consists of.
 ###### `model.url(obj[, computeTangentFrame[, scale]])`
 Returns a promise that is resolved with a [model](#model).
 Vertices are laid out as `position[, texcoord][, normal[, tangent, bitangent]]`.
+
 `computeTangentFrame`: Tangent and bitangent are calculated and added to each vertex. Requires that model contains normals. Default is `false`. 
+
 `scale`: Scale factor. Default is 1.0.
 ###### `prg(vs, fs)`
 Creates a [program](#prg).
+
 `vs`: [Vertex shader](#vs)
+
 `fs`: [Fragment shader](#fs)
+
 Throws `Error` if program failed at linking or validation stage.
 ###### `rbo(width, height[, format])`
 Creates a [renderbuffer](#rbo).
+
 `width`: Buffer width in pixels.
+
 `height`: Buffer heigh in pixels.
+
 `format`: [Buffer format](#render-buffer-internal-format). Default is `gl.DEPTH24_STENCIL8`.
 ###### `tex(width, height[, properties])`
 Creates an empty [texture](#tex).
+
 `width`: Texture width in pixels.
+
 `height`: Texture height in pixels.
+
 `properties`: Object containing texture settings.
 * `fmt`: [Internal format](#texture-internal-format). Default is `gl.RGBA8`.
 * `mips`: Reserve space for mip levels. Default is `false`.
@@ -166,6 +194,7 @@ Creates an empty [texture](#tex).
 
 ###### `tex.data(data[, properties])`
 Creates a [texture](#tex) from the supplied image source.
+
 `data`: Image data. One of:
 * Uint8Array if type is gl.UNSIGNED_BYTE.
 * Uint16Array if type is either gl.UNSIGNED_SHORT_5_6_5, gl.UNSIGNED_SHORT_4_4_4_4,
@@ -190,7 +219,9 @@ gl.UNSIGNED_SHORT_5_5_5_1, gl.UNSIGNED_SHORT or ext.HALF_FLOAT_OES.
 
 ###### `tex.url(url[, properties])`
 Returns a promise that is resolved with a [texture](#tex).
+
 `url`: Image URL
+
 `properties`: Object containing texture settings.
 * `fmt`: [Internal format](#texture-internal-format). Default is `gl.RGBA8`.
 * `srcFmt`: [Source format](#texture-source-format). Default is `gl.RGBA`.
@@ -201,17 +232,21 @@ Returns a promise that is resolved with a [texture](#tex).
 ###### `ubo([usage])`
 Creates a [uniformbuffer](#ubo) with binding points for each uniform block, by name.
 Only blocks from existing programs when the uniformbuffer is created are taken into account.
+
 `usage`: [Usage hint](#buffer-usage-hints). Default is `gl.DYNAMIC_DRAW`.
 ###### `vs(source)`
 Creates a [vertex shader](#vs) from source string.
+
 `source`: Shader source string
+
 Throws `Error` if shader failed to compile.
 ###### `vs.url(src)`
 Returns a promise that is resolved with a [vertex shader](#vs).
+
 `src`: URL of shader source.
+
 Throws `Error` if shader failed to compile.
 
----
 ### FBO
 Frame buffer
 ##### Properties
@@ -224,18 +259,21 @@ Depth attachment. Assignment value is a [renderbuffer](#rbo) or `null`. Write-on
 ##### Methods
 ###### `clear([color[, includedepth]])`
 Clears screen.
+
 `color`: Clear color as a component array. Default is `[0, 0, 0, 1]`.
+
 `includedepth`: Clear depth buffer also. Default is `true`.
 ###### `dispose()`
 Deletes framebuffer.
 ###### `draw(model, prg)`
 Renders to framebuffer.
+
 `model`: [Model](#model) to render.
+
 `prg`: [Program](#prg) to use.
 ###### `validate()`
 Returns [framebuffer status](#framebuffer-status-codes).
 
----
 ### FS
 Fragment shader
 ##### Properties
@@ -245,45 +283,17 @@ gl name
 ###### `dispose()`
 Deletes shader.
 
----
-### VS
-Vertex shader
-##### Properties
-###### `id`
-gl name
-##### Methods
-###### `dispose()`
-Deletes shader.
-
----
-### Tex
-Texture
-##### Properties
-###### `id`
-gl name
-###### `[lod]`
-[Texture level](#level). Index `lod` is a positive integer where 0 represents the original image. Read-only.
-###### `bind(unit)`
-Bind texture to unit.
-`unit`: Texture unit
-###### `dispose()`
-Deletes texture.
-###### `unbind()`
-Unbinds texture from unit previously bound to.
-
----
 ### Level
 Texture mip level
 ###### `draw(model, prg[, depthbuffer])`
 Renders to mip level and returns this level.
-`model`: [Model](#model) to render.
-`prg`: [Program](#prg) to use.
-`depthbuffer`: Optional [renderbuffer](#rbo) buffer for depth.
-###### `clear([depthbuffer])`
-Clears mip level and returns this level.
-`depthbuffer`: Optional [renderbuffer](#rbo) to clear.
 
----
+`model`: [Model](#model) to render.
+
+`prg`: [Program](#prg) to use.
+
+`depthbuffer`: Optional [renderbuffer](#rbo) buffer for depth.
+
 ### Model
 A vertexbuffer, an indexbuffer and a vertex array.
 ##### Properties
@@ -301,7 +311,6 @@ Renders model.
 ###### `dispose()`
 Deletes model and associated resources.
 
----
 ### Prg
 Program
 ##### Properties
@@ -313,7 +322,6 @@ Deletes program.
 ###### `use()`
 Uses this program in rendering.
 
----
 ### RBO
 Renderbuffer
 ##### Properties
@@ -323,7 +331,22 @@ gl name
 ###### `dispose()`
 Deletes buffer.
 
----
+### Tex
+Texture
+##### Properties
+###### `id`
+gl name
+###### `[lod]`
+[Texture level](#level). Index `lod` is a positive integer where 0 represents the original image. Read-only.
+###### `bind(unit)`
+Bind texture to unit.
+
+`unit`: Texture unit
+###### `dispose()`
+Deletes texture.
+###### `unbind()`
+Unbinds texture from unit previously bound to.
+
 ### UBO
 Uniformbuffer
 ##### Properties
@@ -331,14 +354,30 @@ Uniformbuffer
 gl name
 ###### `[block][uniform]`
 Shader uniform tree.
+
 `block`: Uniform block as defined in shader(s). Accepted value is an object containing uniform/value pairs.
+
 `uniform`: Uniform as defined in shader block. Accepted value is either a number, a number array([vec](#vec)/[vec2](#vec2)) or an array of number arrays([matrix](#mat)). Write-only.
+
 Throws `Error` if a block or uniform doesn't exist or if type is none of the types mentioned above.
 ##### Methods
 ###### `dispose()`
 Deletes buffer.
 
----
+### VS
+Vertex shader
+##### Properties
+###### `id`
+gl name
+##### Methods
+###### `dispose()`
+Deletes shader.
+
+###### `clear([depthbuffer])`
+Clears mip level and returns this level.
+
+`depthbuffer`: Optional [renderbuffer](#rbo) to clear.
+
 ## Vector library
 Mathods for calculations on vectors and matrices.
 A vector is an array and a matrix is a 4*4 cell array construction of format [row][column].
@@ -368,7 +407,6 @@ Transforms a vector as a coordinate by [matrix](#mat) `mat`.
 ###### `tn(normal, mat)`
 Transforms a vector as a normal by [matrix](#mat) `mat`.
 
----
 ### vec2
 Methods for operations on 2-component vectors.
 ##### Methods
@@ -391,57 +429,72 @@ Returns the normalized vector.
 ###### `sub(a, b)`
 Returns the difference of two vectors.
 
----
 ### mat
 Methods for matrix creation and operations.
 ##### Methods
 ###### `r(x, y, z)`
 Returns a matrix for rotation around x, y and z axes.
+
 `x`, `y` and `z`: Rotation angle in radians around axis.
 ###### `rx(r)`
 Returns a matrix for rotation around x axis.
+
 `r`: Rotation angle in radians.
 ###### `ry(r)`
 Returns a matrix for rotation around y axis.
+
 `r`: Rotation angle in radians.
 ###### `rz(r)`
 Returns a matrix for rotation around z axis.
+
 `r`: Rotation angle in radians.
 ###### `s(x, y, z)`
 Returns a scaling matrix.
+
 `x`, `y` and `z`: Scaling factor for axis.
 ###### `t(x, y, z)`
 Returns a translation matrix.
+
 `x`, `y` and `z`: Translation for axis.
 ###### `arb(a, b, r)`
 Returns a matrix for rotation by r radians around an arbitrary axis defined by point a and b.
+
 `a` and `b`: Position
+
 `r`: Angle in radians.
 ###### `view(pos, target)`
 Returns a view matrix.
+
 `pos`: Observer position
+
 `target`: Observation target position.
 ###### `glView(pos, target)`
 Same as [view](#array-mat-view-pos-lookat-) but adapted to gl space.
 ###### `proj(zNear, zFar, fov, aspectRatio)`
 Returns a perspective matrix.
+
 `zNear`: Near clipping plane
+
 `zFar`: Far clipping plane
+
 `fov`: Field of View in radians.
+
 `aspectRatio`: Viewport width / height ratio
 ###### `glProj(zNear, zFar, fov, aspectRatio)`
 Same as [proj](#array-mat-proj-znear-zfar-fov-aspectratio-) but adapted to gl space.
 ###### `mul(a, b)`
 Returns the concatenation of two matrices.
+
 `a` and `b`: Matrix
 ###### `inv(m)`
 Returns the inverse matrix.
+
 `m`: Matrix to inverse.
 ###### `tp(m)`
 Returns the transpose matrix.
+
 `m`: Matrix to transpose.
 
----
 ### Camera
 Convenience class for setup and management of view and perspective matrices
 ##### Properties
@@ -453,24 +506,31 @@ Perspective matrix
 View and perspective concatenated matrix. Lazily calculated.
 ##### Constructor
 ###### `new Camera(pos, lookAt, aspectRatio, zNear, zFar, fov, glSpace)`
+
 `pos`: Observer position
+
 `target`: Observation target position.
+
 `aspectRatio`: Viewport width / height ratio
+
 `zNear`: Near clipping plane
+
 `zFar`: Far clipping plane
+
 `fov`: Field of View in radians.
+
 `glSpace`: Use gl matrices adapted to gl space. Default is `true`.
 ##### Methods
 ###### `move(pos, target)`
 Relocates and reorients camera.
+
 `pos`: Observer position.
+
 `target`: Observation target position.
 
----
 ## GLenums
 GLenum parameters in context methods can be substituted by a string where underscore("_") is replaced by dash("-") and all letters are decapitalized. 
 For example, `gl.UNSIGNED_BYTE` becomes `'unsigned-byte'`.
-
 ### Renderbuffer internal format
 * gl.RGBA4: 4 red bits, 4 green bits, 4 blue bits 4 alpha bits.
 * gl.RGB565: 5 red bits, 6 green bits, 5 blue bits.
@@ -616,9 +676,10 @@ When using the EXT_color_buffer_float extension:
 * gl.FRAMEBUFFER_INCOMPLETE_DIMENSIONS: Height and width of the attachment are not the same.
 * gl.FRAMEBUFFER_UNSUPPORTED: The format of the attachment is not supported or if depth and stencil attachments are not the same renderbuffer.
 * gl.FRAMEBUFFER_INCOMPLETE_MULTISAMPLE: The values of gl.RENDERBUFFER_SAMPLES are different among attached renderbuffers, or are non-zero if the attached images are a mix of renderbuffers and textures.
+
 Source: [MDN](https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API)
 
----
+
 ## Extensions
 * EXT_color_buffer_float
     The following sized formats become color-renderable:
