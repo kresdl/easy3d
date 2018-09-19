@@ -12,11 +12,11 @@ async function init() {
 	const { tex, prg, quad, paste } = ctx;
 	ctx.ext('EXT_color_buffer_float');
 
-	const qv = await ctx.vs.url('/data/quad_v.glsl');
+	const qv = await ctx.vs.url('data/quad_v.glsl');
 	const { url } = ctx.fs;
 
-	const df = await url('/data/disp_f.glsl');
-	const cf = await url('/data/comb_f.glsl');
+	const df = await url('data/disp_f.glsl');
+	const cf = await url('data/comb_f.glsl');
 
 	const t = await getPattern(w, h);
 	const s1 = tex.data(t);
@@ -52,7 +52,7 @@ async function init() {
 	v[0].draw(quad, comb);
 	d1.forEach(e => e.dispose());
 
-	$('#loading').hide();
+	document.getElementById('loading').style.display = 'none';
 	c.style.display = 'block';
 	main();
 
