@@ -381,19 +381,19 @@ Methods for operations on 3-component vectors.
 Returns the sum of two vectors.
 ###### `cross(a, b)`
 Returns the cross product of two vectors.
-###### `div(a, d)`
+###### `div(v, d)`
 Returns the resulting vector of vector `v` divided by number `d`.
 ###### `dot(a, b)`
 Returns the dot product of two vectors.
 ###### `length(v)`
 Returns the magnitude of a vector.
 ###### `lerp(a, b, p)`
-Returns the interpolation of two vectors by `p`.
-###### `mul(a, f)`
+Returns the interpolation of two vectors by parameter `p` (0.0 - 1.0).
+###### `mul(v, f)`
 Returns the resulting vector of vector `v` multiplied by number `f`.
 ###### `nrm(v)`
 Returns the normalized vector.
-###### `sub(a, b)`
+###### `sub(v, b)`
 Returns the difference of two vectors.
 ###### `tc(coord, mat)`
 Transforms a vector as a coordinate by [matrix](#mat) `mat`.
@@ -407,15 +407,15 @@ Methods for operations on 2-component vectors.
 Returns the sum of two vectors.
 ###### `cross(a, b)`
 Returns the cross product of two vectors.
-###### `div(a, d)`
+###### `div(v, d)`
 Returns the resulting vector of vector `v` divided by number `d`.
 ###### `dot(a, b)`
 Returns the dot product of two vectors.
 ###### `length(v)`
 Returns the magnitude of a vector.
 ###### `lerp(a, b, p)`
-Returns the interpolation of two vectors by `p`.
-###### `mul(a, f)`
+Returns the interpolation of two vectors by parameter `p` (0.0 - 1.0).
+###### `mul(v, f)`
 Returns the resulting vector of vector `v` multiplied by number `f`.
 ###### `nrm(v)`
 Returns the normalized vector.
@@ -450,11 +450,8 @@ Returns a translation matrix.
 
 `x`, `y` and `z`: Translation for axis.
 ###### `arb(a, b, r)`
-Returns a matrix for rotation by r radians around an arbitrary axis defined by point a and b.
+Returns a matrix for rotation by `r` radians around an arbitrary axis defined by point `a` and `b`.
 
-`a` and `b`: Position
-
-`r`: Angle in radians.
 ###### `view(pos, target)`
 Returns a view matrix.
 
