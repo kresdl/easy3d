@@ -94,7 +94,8 @@ Ctx.prototype = {
 
 	dispose() {
 		[this.prg, this.shader, this.tex, this.vao, this.buf, this.fbo, this.rbo]
-		.flatMap(ns => [...ns.pool.keys()]).forEach(res => res.dispose());
+		.forEach(ns => { [...ns.pool.keys()].forEach(res => { res.dispose(); }) });
+		this.fb.dispose();
 	},
 
 	ext(name) {
