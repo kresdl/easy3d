@@ -6,7 +6,7 @@ function Tex(ctx, w, h, properties) {
 	const id = gl.createTexture();
 	const { data, fmt, srcFmt, type, mips, wrap } = properties;
 	assign(this, {
-		gl, id,	w, h, fmt,
+		gl, id, w, h, fmt,
 		pool: tex.pool.add(this)
 	});
 
@@ -38,33 +38,34 @@ function Tex(ctx, w, h, properties) {
 		}
 	};
 
-	gl.bindTexture(gl.TEXTURE_2D, id);
+	const t2d = gl.TEXTURE_2D;
+	gl.bindTexture(t2d, id);
 
 	if (data) {
 		gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
 		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-		gl.texImage2D(gl.TEXTURE_2D, 0, fmt, w, h, 0, srcFmt, type, data);
+		gl.texImage2D(t2d, 0, fmt, w, h, 0, srcFmt, type, data);
 
 		if (mips) {
 			this.mip();
 		}
 	} else if (mips) {
-		const m = Tex.mips(w, h);
-		gl.texStorage2D(gl.TEXTURE_2D, m, fmt, w, h);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAX_LEVEL, m - 1);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-
+		const m = calcLOD(w, h);
+		gl.texStorage2D(t2d, m, fmt, w, h);
+		gl.texParameteri(t2d, gl.TEXTURE_MAX_LEVEL, m - 1);
+		gl.texParameteri(t2d, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
 	} else {
-		gl.texStorage2D(gl.TEXTURE_2D, 1, fmt, w, h);
+		gl.texStorage2D(t2d, 1, fmt, w, h);
 	}
 
 	if (!mips) {
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAX_LEVEL, 0);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+		gl.texParameteri(t2d, gl.TEXTURE_MAX_LEVEL, 0);
+		gl.texParameteri(t2d, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 	}
 
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-	this.texwrap(wrap);
+	gl.texParameteri(t2d, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+	gl.texParameteri(t2d, gl.TEXTURE_WRAP_S, wrap);
+	gl.texParameteri(t2d, gl.TEXTURE_WRAP_T, wrap);
 
 	return new Proxy(this, {
 		get: function(tg, p) {
@@ -79,26 +80,15 @@ function Tex(ctx, w, h, properties) {
 }
 
 Tex.prototype = {
-	texwrap(wrap) {
-		const { gl, id, pool } = this;
-		const current = pool.current;
-		gl.bindTexture(gl.TEXTURE_2D, id);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, wrap);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, wrap);
-		if (current) {
-			gl.bindTexture(gl.TEXTURE_2D, current);
-		}
-	},
-
 	mip() {
-		const { gl, id, pool, w, h } = this;
-		const current = pool.current;
-		gl.bindTexture(gl.TEXTURE_2D, id);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAX_LEVEL, Tex.mips(w, h) - 1);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-		gl.generateMipmap(gl.TEXTURE_2D);
+		const { gl, id, pool: { current }, w, h } = this;
+		const t2d = gl.TEXTURE_2D;
+		gl.bindTexture(t2d, id);
+		gl.texParameteri(t2d, gl.TEXTURE_MAX_LEVEL, calcLOD(w, h) - 1);
+		gl.texParameteri(t2d, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+		gl.generateMipmap(t2d);
 		if (current) {
-			gl.bindTexture(gl.TEXTURE_2D, current);
+			gl.bindTexture(t2d, current);
 		}
 	},
 
@@ -124,7 +114,7 @@ Tex.prototype = {
 			delete this.unit;
 		}
 		if (pool.current === id) {
-			pool.current = undefined;
+			delete pool.current;
 		}
 		gl.bindTexture(gl.TEXTURE_2D, null);
 	}
@@ -149,7 +139,7 @@ Tex.data = (ctx, data, properties = {}) => {
 	return new Tex(ctx, data.width || w, data.height || h, { data, fmt, srcFmt, type, mips, wrap });
 };
 
-Tex.mips = (width, height) => {
+function calcLOD(width, height) {
 	var res = Math.min(width, height);
 	var n = 1;
 	while (res > 1) {
@@ -157,6 +147,6 @@ Tex.mips = (width, height) => {
 		n++;
 	}
 	return n;
-};
+}
 
 export default Tex;

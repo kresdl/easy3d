@@ -287,6 +287,11 @@ Renders to mip level and returns this level.
 
 `depthbuffer`: Optional [renderbuffer](#rbo) buffer for depth.
 
+###### `clear([depthbuffer])`
+Clears mip level and returns this level.
+
+`depthbuffer`: Optional [renderbuffer](#rbo) to clear.
+
 ### Model
 A vertexbuffer, an indexbuffer and a vertex array.
 ##### Properties

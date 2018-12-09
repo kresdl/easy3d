@@ -37,9 +37,6 @@ const vec2 = {
 	}
 };
 
-Object.keys(vec2)
-.forEach(e => {
-	vec2[e] = vec2[e].bind(vec2);
-});
+vec2.nrm = vec2.nrm.bind(vec2);
 
 export default vec2;

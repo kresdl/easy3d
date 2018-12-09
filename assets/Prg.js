@@ -6,7 +6,7 @@ function Prg(ctx, vs, fs) {
 	const { gl, prg } = ctx;
 	const id = gl.createProgram();
 	assign(this, {
-		gl,	id,	vs,	fs,
+		gl, id, vs, fs,
 		pool: prg.pool.add(this)
 	});
 

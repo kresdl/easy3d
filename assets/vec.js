@@ -56,9 +56,6 @@ const vec = {
 	}
 };
 
-Object.keys(vec)
-.forEach(e => {
-	vec[e] = vec[e].bind(vec);
-});
+vec.nrm = vec.nrm.bind(vec);
 
 export default vec;

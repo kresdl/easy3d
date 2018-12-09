@@ -4,7 +4,7 @@ function Shader(ctx, source, type) {
 	const { gl, shader } = ctx;
 	const id = gl.createShader(type);
 	assign(this, {
-		gl,	id,
+		gl, id,
 		pool: shader.pool.add(this)
 	 });
 
