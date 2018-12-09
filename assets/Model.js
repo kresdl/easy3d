@@ -1,8 +1,8 @@
 import VAO from './VAO.js';
 import VBO from './VBO.js';
 import IBO from './IBO.js';
-import vec from './vec.js';
-import vec2 from './vec2.js';
+import { mul, sub, add, dot, nrm } from './vec.js';
+import { sub2, cross2 } from './vec2.js';
 
 const { assign } = Object;
 
@@ -85,7 +85,6 @@ Model.url = async (ctx, obj, computeTangentFrame, scale) => {
 	const p = [], n = [], p1 = [], n1 = [], t = [],
 	t1 = [], f = [], m = {}, g = [];
 	var k = 0, d = [];
-	const { mul, sub, add, dot, nrm } = vec;
 
 	const s = data.split(/\n/);
 	for (let q of s) {
@@ -139,11 +138,11 @@ Model.url = async (ctx, obj, computeTangentFrame, scale) => {
 				const vp = p1[c];
 				const vt = t1[c];
 				const dp1 = sub(p1[u[q]], vp);
-				const dt1 = vec2.sub(t1[u[q]], vt);
+				const dt1 = sub2(t1[u[q]], vt);
 				const dp2 = sub(p1[u[r]], vp);
-				const dt2 = vec2.sub(t1[u[r]], vt);
+				const dt2 = sub2(t1[u[r]], vt);
 
-				const x = 1.0 / vec2.cross(dt1, dt2);
+				const x = 1.0 / cross2(dt1, dt2);
 				const tan = mul(sub(mul(dp1, dt2[1]), mul(dp2, dt1[1])), x);
 				const bit = mul(sub(mul(dp2, dt1[0]), mul(dp1, dt2[0])), x);
 				ta.set(c, ta.has(c) ? ta.get(c).concat([tan]) : [tan]);
