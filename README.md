@@ -9,9 +9,9 @@ A 3D framework written by [kresdl](https://www.kresdl.com)
 `npm install easy3d`
 
 ## Usage
-It is preferrable to build an easy3d application with webpack to avoid polution of global scope and import only what is needed.
+Bundle your app with a module bundler, e.g webpack.
 
-### Samples
+### Examples
 A simple application might look like this:
 ```javascript
 import { Ctx, Camera } from 'easy3d';
