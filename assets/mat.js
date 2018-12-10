@@ -11,7 +11,7 @@ export function rotate(x, y, z) {
 	const m1 = rotateX(x);
 	const m2 = rotateY(y);
 	const m3 = rotateZ(z);
-	return conc(conc(m1, m2), m3);
+	return concat(concat(m1, m2), m3);
 }
 
 export function rotateX(r) {
@@ -68,7 +68,7 @@ export function translate(x, y, z) {
 
 export function arb(a, b, angle) {
 	const v = view(a, b);
-	return conc(conc(v, rotateZ(angle)), inverse(v));
+	return concat(concat(v, rotateZ(angle)), inverse(v));
 }
 
 export function view(pos, target) {
@@ -149,7 +149,7 @@ export function glProj(zNear, zFar, fov, aspectRatio) {
 	return m;
 }
 
-export function conc(a, b) {
+export function concat(a, b) {
 	const m = id();
 	m[0][0] = b[0][0] * a[0][0] + b[1][0] * a[0][1] + b[2][0] * a[0][2] + b[3][0] * a[0][3];
 	m[1][0] = b[0][0] * a[1][0] + b[1][0] * a[1][1] + b[2][0] * a[1][2] + b[3][0] * a[1][3];

@@ -1,3 +1,4 @@
+
 # easy3d
 ![npm](https://img.shields.io/npm/v/easy3d.svg)
 ![npm](https://img.shields.io/npm/dm/easy3d.svg)
@@ -13,7 +14,7 @@ It is preferrable to build an easy3d application with webpack to avoid polution 
 ### Samples
 A simple application might look like this:
 ```javascript
-import { Ctx, Camera, vec, mat } from 'easy3d';
+import { Ctx, Camera } from 'easy3d';
 
 const c = document.getElementById('canvas');
 const ctx = new Ctx(c);
@@ -71,7 +72,7 @@ Object.assign(uni, {
 		uniform: [0, 1000, 0],
 		another: cam.matrix
 	},
-	
+
 	another: {
 		uniform: [500, 0, 200],
 		another: [200, 500, 600],
@@ -153,7 +154,7 @@ Creates a [model](#model).
 Returns a promise that is resolved with a [model](#model).
 Vertices are laid out as `position[, texcoord][, normal[, tangent, bitangent]]`.
 
-`computeTangentFrame`: Tangent and bitangent are calculated and added to each vertex. Requires that model contains normals. Default is `false`. 
+`computeTangentFrame`: Tangent and bitangent are calculated and added to each vertex. Requires that model contains normals. Default is `false`.
 
 `scale`: Scale factor. Default is 1.0.
 ###### `prg(vs, fs)`
@@ -378,9 +379,8 @@ Clears mip level and returns this level.
 
 ## Vector library
 Mathods for calculations on vectors and matrices.
-A vector is an array and a matrix is a 4*4 cell array construction of format [row][column].
-### vec
-Methods for operations on 3-component vectors.
+#### 3-component vector operations
+A vector is an array of length 3.
 ##### Methods
 ###### `add(a, b)`
 Returns the sum of two vectors.
@@ -400,57 +400,57 @@ Returns the resulting vector of vector `v` multiplied by number `f`.
 Returns the normalized vector.
 ###### `sub(v, b)`
 Returns the difference of two vectors.
-###### `tc(coord, mat)`
+###### `tfc(coord, mat)`
 Transforms a vector as a coordinate by [matrix](#mat) `mat`.
-###### `tn(normal, mat)`
+###### `tfn(normal, mat)`
 Transforms a vector as a normal by [matrix](#mat) `mat`.
 
-### vec2
-Methods for operations on 2-component vectors.
+#### 2-component vector operations
+A vector is an array of length 2.
 ##### Methods
-###### `add(a, b)`
+###### `add2(a, b)`
 Returns the sum of two vectors.
-###### `cross(a, b)`
+###### `cross2(a, b)`
 Returns the cross product of two vectors.
-###### `div(v, d)`
+###### `div2(v, d)`
 Returns the resulting vector of vector `v` divided by number `d`.
-###### `dot(a, b)`
+###### `dot2(a, b)`
 Returns the dot product of two vectors.
-###### `length(v)`
+###### `length2(v)`
 Returns the magnitude of a vector.
-###### `lerp(a, b, p)`
+###### `lerp2(a, b, p)`
 Returns the interpolation of two vectors by parameter `p` (0.0 - 1.0).
-###### `mul(v, f)`
+###### `mul2(v, f)`
 Returns the resulting vector of vector `v` multiplied by number `f`.
-###### `nrm(v)`
+###### `nrm2(v)`
 Returns the normalized vector.
-###### `sub(a, b)`
+###### `sub2(a, b)`
 Returns the difference of two vectors.
 
-### mat
-Methods for matrix creation and operations.
-##### Methods
-###### `r(x, y, z)`
+#### Matrix operations
+ A matrix is  a 4*4 cell array construction of format [row][column].
+ ##### Methods
+###### `rotate(x, y, z)`
 Returns a matrix for rotation around x, y and z axes.
 
 `x`, `y` and `z`: Rotation angle in radians around axis.
-###### `rx(r)`
+###### `rotateX(r)`
 Returns a matrix for rotation around x axis.
 
 `r`: Rotation angle in radians.
-###### `ry(r)`
+###### `rotateY(r)`
 Returns a matrix for rotation around y axis.
 
 `r`: Rotation angle in radians.
-###### `rz(r)`
+###### `rotateZ(r)`
 Returns a matrix for rotation around z axis.
 
 `r`: Rotation angle in radians.
-###### `s(x, y, z)`
+###### `scale(x, y, z)`
 Returns a scaling matrix.
 
 `x`, `y` and `z`: Scaling factor for axis.
-###### `t(x, y, z)`
+###### `translate(x, y, z)`
 Returns a translation matrix.
 
 `x`, `y` and `z`: Translation for axis.
@@ -477,15 +477,15 @@ Returns a perspective matrix.
 `aspectRatio`: Viewport width / height ratio
 ###### `glProj(zNear, zFar, fov, aspectRatio)`
 Same as [proj](#array-mat-proj-znear-zfar-fov-aspectratio-) but adapted to gl space.
-###### `mul(a, b)`
+###### `concat(a, b)`
 Returns the concatenation of two matrices.
 
 `a` and `b`: Matrix
-###### `inv(m)`
+###### `inverse(m)`
 Returns the inverse matrix.
 
 `m`: Matrix to inverse.
-###### `tp(m)`
+###### `transpose(m)`
 Returns the transpose matrix.
 
 `m`: Matrix to transpose.
@@ -524,7 +524,7 @@ Relocates and reorients camera.
 `target`: Observation target position.
 
 ## GLenums
-GLenum parameters in context methods can be substituted by a string where underscore("_") is replaced by dash("-") and all letters are decapitalized. 
+GLenum parameters in context methods can be substituted by a string where underscore("_") is replaced by dash("-") and all letters are decapitalized.
 For example, `gl.UNSIGNED_BYTE` becomes `'unsigned-byte'`.
 ### Renderbuffer internal format
 * gl.RGBA4: 4 red bits, 4 green bits, 4 blue bits 4 alpha bits.
@@ -686,8 +686,8 @@ Source: [MDN](https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API)
     Color-renderable means:
 	The WebGLRenderingContext.renderbufferStorage() method now accepts these formats.
 	Framebuffers with attached textures of these formats may now be FRAMEBUFFER_COMPLETE.
-	
-* EXT_texture_filter_anisotropic 
+
+* EXT_texture_filter_anisotropic
 
     Part of the WebGL API and exposes two constants for anisotropic filtering (AF).
     AF improves the quality of mipmapped texture access when viewing a textured primitive at an oblique angle. Using just mipmapping, these lookups have a tendency to average to grey.
@@ -698,16 +698,16 @@ Source: [MDN](https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API)
     * ext.TEXTURE_MAX_ANISOTROPY_EXT
     This is the pname argument to the gl.getTexParameter() and gl.texParameterf() / gl.texParameteri() calls and sets the desired maximum anisotropy for a texture.
 
-	
+
 * OES_texture_float_linear
 
     Allows linear filtering with floating-point pixel types for textures.
     With the help of this extension, you can now set the magnification or minification filter in the WebGLRenderingContext.texParameter() method to one of gl.LINEAR, gl.LINEAR_MIPMAP_NEAREST, gl.NEAREST_MIPMAP_LINEAR, or gl.LINEAR_MIPMAP_LINEAR, and use floating-point textures.
-	
+
 * OES_texture_half_float_linear
 
     Allows linear filtering with half floating-point pixel types for textures.
-	
+
 * WEBGL_debug_renderer_info
 
     Exposes two constants with information about the graphics driver for debugging purposes.
@@ -719,7 +719,7 @@ Source: [MDN](https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API)
 	* ext.UNMASKED_RENDERER_WEBGL
 	Renderer string of the graphics driver.
 
-	
+
 * WEBGL_debug_shaders
 
     Exposes a method to debug shaders from privileged contexts.
@@ -739,5 +739,5 @@ Source: [MDN](https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API)
 	Simulates losing the context.
 	* WEBGL_lose_context.restoreContext()
 	Simulates restoring the context.
-	
+
 Source: [MDN](https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API)

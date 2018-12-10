@@ -1,4 +1,4 @@
-import { mat, Ctx } from 'easy3d';
+import { Ctx, rotateZ } from 'easy3d';
 
 init();
 
@@ -57,7 +57,7 @@ async function init() {
 	main();
 
 	function main() {
-		uni.m1.mat = mat.rz(rd);
+		uni.m1.mat = mat.rotateZ(rd);
 		s.bind(0);
 		v.bind(1);
 		d[0].draw(quad, disp);

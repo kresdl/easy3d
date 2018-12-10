@@ -1,4 +1,4 @@
-import { view, glView, proj, glProj, conc } from './mat.js';
+import { view, glView, proj, glProj, concat } from './mat.js';
 
 function Camera(pos, target, aspectRatio, zNear, zFar, fov, glSpace = true) {
 	this.pos = pos;
@@ -15,7 +15,7 @@ Camera.prototype = {
 	},
 
 	get matrix() {
-		return conc(this.view, this.proj);
+		return concat(this.view, this.proj);
 	}
 };
 
