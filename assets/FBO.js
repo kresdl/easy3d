@@ -69,7 +69,12 @@ FBO.prototype = {
 	},
 
 	draw(model, prg) {
-		const { gl } = this;
+		const { gl, blend } = this;
+		if (blend) {
+			gl.enable(gl.BLEND);
+		} else {
+			gl.disable(gl.BLEND);
+		}
 		this.bind();
 		gl.drawBuffers(this.attachments.keys());
 		const { w, h } = this.attachments.values().next().value;
@@ -78,7 +83,7 @@ FBO.prototype = {
 		model.draw();
 	},
 
-	clear(color = [0, 0, 0, 1], depth = true) {
+	clear(color = [0, 0, 0, 0], depth = true) {
 		const { gl } = this;
 		this.bind();
 		gl.drawBuffers(this.attachments.keys());

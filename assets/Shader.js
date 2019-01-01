@@ -34,9 +34,14 @@ Shader.prototype.dispose = function() {
 	pool.delete(this);
 };
 
-Shader.url = async (ctx, src, type) => {
+Shader.url = async (ctx, src, type, constants) => {
 	const res = await fetch(src);
-	const source = await res.text();
+	var source = await res.text();
+	if (constants) {
+		Object.keys(constants).forEach(c => {
+			source = source.replace(new RegExp(`\\$${c}`, 'g'), ('' + constants[c]));
+		});
+	}
 	return new Shader(ctx, source, type);
 };
 

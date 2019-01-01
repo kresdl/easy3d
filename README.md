@@ -84,7 +84,15 @@ Object.assign(uni, {
 ## GL wrappers
 Abstraction classes for WebGL resources and data management.
 ### Ctx
-WebGL context
+WebGL context. Has the following default states:
+```javascript
+	gl.depthFunc(gl.LEQUAL);
+	gl.clearDepth(1.0);
+	gl.blendEquation(gl.FUNC_ADD);
+	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+	gl.frontFace(gl.CCW);
+```
+This means that depth testing is set to "less or equal", clear depth is set to 1.0, blending behavior when enabled is set to "source over destination" and triangles with counter-clockwise winding are considered front facing.
 ##### Constructor
 ###### `new Ctx(canvas)`
 `canvas`: HTMLCanvasElement
@@ -96,20 +104,14 @@ WebGL context
 ###### `id`
 gl name
 ###### `paste`
-Simple [program](#prg) for plain rendering of texels.
+Simple [program](#prg) for plain rendering of texels to a rectangular area of target.
 Can for copy operations conveniently be used with [quad](#quad) obtained with `ctx.quad`.
 ###### `quad`
 Screen quad [model](#model). 4 vertices with layout consisting of screen position and texture coordinates.
 Can for copy operations conveniently be used with paste [program](#prg) obtained with `ctx.paste`.
+###### `blend`
+`Boolean` to enable blending. Default is `false`.
 ##### Methods
-###### `zTest(enable)`
-Enables "less or equal"-depth test and sets clear depth to 1.0.
-
-`enable`: Boolean
-###### `blend(enable)`
-Enables overlay blending.
-
-`enable`: Boolean
 ###### `draw(model, prg)`
 Renders [model](#model) using specified [program](#prg).
 
@@ -119,7 +121,7 @@ Renders [model](#model) using specified [program](#prg).
 ###### `clear([color[, includedepth]])`
 Clears screen.
 
-`color`: Clear color as a component array. Default is `[0, 0, 0, 1]`.
+`color`: Clear color as a component array. Default is `[0, 0, 0, 0]`.
 
 `includedepth`: Clear depth buffer also. Default is `true`.
 ###### `dispose()`
@@ -133,13 +135,15 @@ Creates a [framebuffer](#fbo).
 ###### `fs(source)`
 Creates a [fragment shader](#fs) from source.
 
-`source`: Shader source string
+`source`: Shader source `String`
 
 Throws `Error` if shader failed to compile.
-###### `fs.url(src)`
+###### `fs.url(src, constants)`
 Returns a promise that is resolved with a [fragment shader](#fs).
 
 `src`: URL of shader source.
+
+`constants`: `Object` used to interpolate shader source by resolving `$<key>` with a value of a matching key.
 
 Throws `Error` if shader failed to compile.
 ###### `model(vertices, indices, vertexLayout)`
@@ -180,9 +184,9 @@ Creates an empty [texture](#tex).
 
 `height`: Texture height in pixels.
 
-`properties`: Object containing texture settings.
+`properties`: `Object` containing texture settings.
 * `fmt`: [Internal format](#texture-internal-format). Default is `gl.RGBA8`.
-* `mips`: Reserve space for mip levels. Default is `false`.
+* `mips`: Reserve space for a full mip set. A `Number` specifies amount of levels. Default is `false`.
 * `wrap`: [Wrapping function](#texture-wrapping-function). Default is `gl.REPEAT`.
 
 ###### `tex.data(data[, properties])`
@@ -202,13 +206,13 @@ gl.UNSIGNED_SHORT_5_5_5_1, gl.UNSIGNED_SHORT or ext.HALF_FLOAT_OES.
 
 (Source: [MDN](https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API))
 
-`properties`: Object containing texture settings.
+`properties`: `Object` containing texture settings.
 * `w`: If `data.width` is `undefined`. Texture width in pixels.
 * `h`: If `data.height` is `undefined`. Texture height in pixels.
 * `fmt`: [Internal format](#texture-internal-format). Default is `gl.RGBA8`.
 * `srcFmt`: [Source format](#texture-source-format). Default is `gl.RGBA`.
 * `type`: [Source data type](#texture-data-type). Default is `gl.UNSIGNED_BYTE`.
-* `mips`: Generate mip levels. Default is `false`.
+* `mips`: Generate mip levels. A `Number` specifies amount of levels. Default is `true`.
 * `wrap`: [Wrapping function](#texture-wrapping-function). Default is `gl.REPEAT`.
 
 ###### `tex.url(url[, properties])`
@@ -216,11 +220,11 @@ Returns a promise that is resolved with a [texture](#tex).
 
 `url`: Image URL
 
-`properties`: Object containing texture settings.
+`properties`: `Object` containing texture settings.
 * `fmt`: [Internal format](#texture-internal-format). Default is `gl.RGBA8`.
 * `srcFmt`: [Source format](#texture-source-format). Default is `gl.RGBA`.
 * `type`: [Source data type](#texture-data-type). Default is `gl.UNSIGNED_BYTE`.
-* `mips`: Generate mip levels. Default is `true`.
+* `mips`: Generate mip levels. A `Number` specifies amount of levels. Default is `true`.
 * `wrap`: [Wrapping function](#texture-wrapping-function). Default is `gl.REPEAT`.
 
 ###### `ubo([usage])`
@@ -229,15 +233,17 @@ Only blocks from existing programs when the uniformbuffer is created are taken i
 
 `usage`: [Usage hint](#buffer-usage-hints). Default is `gl.DYNAMIC_DRAW`.
 ###### `vs(source)`
-Creates a [vertex shader](#vs) from source string.
+Creates a [vertex shader](#vs) from source `String`.
 
-`source`: Shader source string
+`source`: Shader source `String`
 
 Throws `Error` if shader failed to compile.
-###### `vs.url(src)`
+###### `vs.url(src, constants)`
 Returns a promise that is resolved with a [vertex shader](#vs).
 
 `src`: URL of shader source.
+
+`constants`: `Object` used to interpolate shader source by resolving `$<key>` with a value of a matching key.
 
 Throws `Error` if shader failed to compile.
 
@@ -250,11 +256,13 @@ gl name
 Color attachment. Index `attachment_point` is a positive integer. Assignment value is a [texture level](#level) or `null`. Write-only.
 ###### `depth`
 Depth attachment. Assignment value is a [renderbuffer](#rbo) or `null`. Write-only.
+###### `blend`
+`Boolean` to enable blending. Default is `false`.
 ##### Methods
 ###### `clear([color[, includedepth]])`
 Clears screen.
 
-`color`: Clear color as a component array. Default is `[0, 0, 0, 1]`.
+`color`: Clear color as a component array. Default is `[0, 0, 0, 0]`.
 
 `includedepth`: Clear depth buffer also. Default is `true`.
 ###### `dispose()`
@@ -279,6 +287,10 @@ Deletes shader.
 
 ### Level
 Texture mip level
+##### Properties
+###### `blend`
+`Boolean` to enable blending. Default is `false`.
+##### Methods
 ###### `draw(model, prg[, depthbuffer])`
 Renders to mip level and returns this level.
 
@@ -297,13 +309,13 @@ Clears mip level and returns this level.
 A vertexbuffer, an indexbuffer and a vertex array.
 ##### Properties
 ###### `cull`
-Boolean enabling face culling. Default is `true`.
+`Boolean` to enable face culling. Default is `true`.
 ###### `ztest`
-Boolean enabling depth buffer testing. Default is `true`.
+`Boolean` to enable depth buffer testing. Default is `true`.
 ###### `zwrite`
-Boolean enabling depth buffer writing. Default is `true`.
+`Boolean` to enable depth buffer writing. Default is `true`.
 ###### `back`
-Boolean for front side culling. Default is `false`.
+`Boolean` to use front side culling. Default is `false`.
 ##### Methods
 ###### `draw()`
 Renders model.
@@ -341,6 +353,8 @@ gl name
 Bind texture to unit.
 
 `unit`: Texture unit
+###### `mip()`
+Generates mip levels.
 ###### `dispose()`
 Deletes texture.
 ###### `unbind()`
@@ -354,9 +368,9 @@ gl name
 ###### `[block][uniform]`
 Shader uniform tree.
 
-`block`: Uniform block as defined in shader(s). Accepted value is an object containing uniform/value pairs.
+`block`: Uniform block as defined in shader(s). Accepted value is an `Object` containing uniform/value pairs.
 
-`uniform`: Uniform as defined in shader block. Accepted value is either a number, a number array([vec](#vec)/[vec2](#vec2)) or an array of number arrays([matrix](#mat)). Write-only.
+`uniform`: Uniform as defined in shader block. Accepted value is either a `Number`, a `Number` array([vec](#vec)/[vec2](#vec2)) or an array of `Number` arrays([matrix](#mat)). Write-only.
 
 Throws `Error` if a block or uniform doesn't exist or if type is none of the types mentioned above.
 ##### Methods
@@ -379,15 +393,15 @@ Clears mip level and returns this level.
 
 ## Vector library
 Mathods for calculations on vectors and matrices.
-#### 3-component vector operations
-A vector is an array of length 3.
+#### 3D vector
+A 3D vector is an array of length 3.
 ##### Methods
 ###### `add(a, b)`
 Returns the sum of two vectors.
 ###### `cross(a, b)`
 Returns the cross product of two vectors.
 ###### `div(v, d)`
-Returns the resulting vector of vector `v` divided by number `d`.
+Returns the resulting vector of vector `v` divided by `Number` `d`.
 ###### `dot(a, b)`
 Returns the dot product of two vectors.
 ###### `length(v)`
@@ -395,7 +409,7 @@ Returns the magnitude of a vector.
 ###### `lerp(a, b, p)`
 Returns the interpolation of two vectors by parameter `p` (0.0 - 1.0).
 ###### `mul(v, f)`
-Returns the resulting vector of vector `v` multiplied by number `f`.
+Returns the resulting vector of vector `v` multiplied by `Number` `f`.
 ###### `nrm(v)`
 Returns the normalized vector.
 ###### `sub(v, b)`
@@ -405,15 +419,15 @@ Transforms a vector as a coordinate by [matrix](#mat) `mat`.
 ###### `tfn(normal, mat)`
 Transforms a vector as a normal by [matrix](#mat) `mat`.
 
-#### 2-component vector operations
-A vector is an array of length 2.
+#### 2D vector
+A 2D vector is an array of length 2.
 ##### Methods
 ###### `add2(a, b)`
 Returns the sum of two vectors.
 ###### `cross2(a, b)`
 Returns the cross product of two vectors.
 ###### `div2(v, d)`
-Returns the resulting vector of vector `v` divided by number `d`.
+Returns the resulting vector of vector `v` divided by `Number` `d`.
 ###### `dot2(a, b)`
 Returns the dot product of two vectors.
 ###### `length2(v)`
@@ -421,15 +435,15 @@ Returns the magnitude of a vector.
 ###### `lerp2(a, b, p)`
 Returns the interpolation of two vectors by parameter `p` (0.0 - 1.0).
 ###### `mul2(v, f)`
-Returns the resulting vector of vector `v` multiplied by number `f`.
+Returns the resulting vector of vector `v` multiplied by `Number` `f`.
 ###### `nrm2(v)`
 Returns the normalized vector.
 ###### `sub2(a, b)`
 Returns the difference of two vectors.
 
-#### Matrix operations
- A matrix is  a 4*4 cell array construction of format [row][column].
- ##### Methods
+#### Matrix
+A matrix is a 4*4 cell array construction of format [row][column].
+##### Methods
 ###### `rotate(x, y, z)`
 Returns a matrix for rotation around x, y and z axes.
 
@@ -490,7 +504,7 @@ Returns the transpose matrix.
 
 `m`: Matrix to transpose.
 
-### Camera
+## Camera
 Convenience class for setup and management of view and perspective matrices
 ##### Properties
 ###### `view`
@@ -524,14 +538,14 @@ Relocates and reorients camera.
 `target`: Observation target position.
 
 ## GLenums
-GLenum parameters in context methods can be substituted by a string where underscore("_") is replaced by dash("-") and all letters are decapitalized.
+GLenum parameters in context methods can be substituted by a `String` where underscore("_") is replaced by dash("-") and all letters are decapitalized.
 For example, `gl.UNSIGNED_BYTE` becomes `'unsigned-byte'`.
 ### Renderbuffer internal format
-* gl.RGBA4: 4 red bits, 4 green bits, 4 blue bits 4 alpha bits.
-* gl.RGB565: 5 red bits, 6 green bits, 5 blue bits.
-* gl.RGB5_A1: 5 red bits, 5 green bits, 5 blue bits, 1 alpha bit.
-* gl.DEPTH_COMPONENT16: 16 depth bits.
-* gl.STENCIL_INDEX8: 8 stencil bits.
+* gl.RGBA4
+* gl.RGB565
+* gl.RGB5_A1
+* gl.DEPTH_COMPONENT16
+* gl.STENCIL_INDEX8
 * gl.DEPTH_STENCIL
 * gl.R8
 * gl.R8UI
@@ -574,7 +588,13 @@ When using the EXT_color_buffer_float extension:
 * gl.R11F_G11F_B10F
 
 ### Texture internal format
-* gl.R8
+* gl.ALPHA
+* gl.RGB
+* gl.RGBA
+* gl.LUMINANCE
+* gl.LUMINANCE_ALPHA
+* gl.DEPTH_COMPONENT
+* gl.DEPTH_STENCIL
 * gl.R16F
 * gl.R32F
 * gl.R8UI
@@ -610,6 +630,8 @@ When using the EXT_color_buffer_float extension:
 * gl.RGBA_INTEGER
 * gl.LUMINANCE
 * gl.LUMINANCE_ALPHA
+* gl.DEPTH_COMPONENT
+* gl.DEPTH_STENCIL
 
 ### Texture data type
 * gl.UNSIGNED_BYTE: 8 bits per channel for gl.RGBA

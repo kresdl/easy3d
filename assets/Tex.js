@@ -23,6 +23,11 @@ function Tex(ctx, w, h, properties) {
 	this.Level.prototype = {
 		draw(model, prg, depthbuffer = null) {
 			const { fb } = ctx;
+			if (this.blend) {
+				gl.enable(gl.BLEND);
+			} else {
+				gl.disable(gl.BLEND);
+			}
 			fb.attach(0, this);
 			fb.attachDepth(depthbuffer);
 			fb.draw(model, prg);
@@ -47,18 +52,22 @@ function Tex(ctx, w, h, properties) {
 		gl.texImage2D(t2d, 0, fmt, w, h, 0, srcFmt, type, data);
 
 		if (mips) {
+			this.maxLevel = (typeof mips === 'number'? mips : calcLOD(w, h)) - 1;
 			this.mip();
 		}
 	} else if (mips) {
-		const m = calcLOD(w, h);
-		gl.texStorage2D(t2d, m, fmt, w, h);
-		gl.texParameteri(t2d, gl.TEXTURE_MAX_LEVEL, m - 1);
+		const maxLevel = (typeof mips === 'number'? mips : calcLOD(w, h)) - 1;
+		this.maxLevel = maxLevel;
+		console.log(maxLevel);
+		gl.texStorage2D(t2d, maxLevel + 1, fmt, w, h);
+		gl.texParameteri(t2d, gl.TEXTURE_MAX_LEVEL, maxLevel);
 		gl.texParameteri(t2d, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
 	} else {
 		gl.texStorage2D(t2d, 1, fmt, w, h);
 	}
 
 	if (!mips) {
+		this.maxLevel = 0;
 		gl.texParameteri(t2d, gl.TEXTURE_MAX_LEVEL, 0);
 		gl.texParameteri(t2d, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 	}
@@ -81,10 +90,10 @@ function Tex(ctx, w, h, properties) {
 
 Tex.prototype = {
 	mip() {
-		const { gl, id, pool: { current }, w, h } = this;
+		const { gl, id, pool: { current }, maxLevel } = this;
 		const t2d = gl.TEXTURE_2D;
 		gl.bindTexture(t2d, id);
-		gl.texParameteri(t2d, gl.TEXTURE_MAX_LEVEL, calcLOD(w, h) - 1);
+		gl.texParameteri(t2d, gl.TEXTURE_MAX_LEVEL, maxLevel);
 		gl.texParameteri(t2d, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
 		gl.generateMipmap(t2d);
 		if (current) {

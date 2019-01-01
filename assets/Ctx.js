@@ -20,6 +20,11 @@ function Ctx(canvas) {
 
 	this.gl = gl;
 	this.fb = new FBO(this);
+
+	gl.depthFunc(gl.LEQUAL);
+	gl.clearDepth(1.0);
+	gl.blendEquation(gl.FUNC_ADD);
+	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 	gl.frontFace(gl.CCW);
 
 	const proxy = new Proxy(this, {
@@ -46,32 +51,13 @@ function Ctx(canvas) {
 }
 
 Ctx.prototype = {
-	zTest(enable) {
-		const { gl } = this;
-
-		if (enable) {
-			gl.enable(gl.DEPTH_TEST);
-			gl.depthFunc(gl.LEQUAL);
-			gl.clearDepth(1.0);
-		} else {
-			gl.disable(gl.DEPTH_TEST);
-		}
-	},
-
-	blend(enable) {
-		const { gl } = this;
-
-		if (enable) {
+	draw(model, prg) {
+		const { gl, blend } = this;
+		if (blend) {
 			gl.enable(gl.BLEND);
-			gl.blendEquation(gl.FUNC_ADD);
-			gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 		} else {
 			gl.disable(gl.BLEND);
 		}
-	},
-
-	draw(model, prg) {
-		const { gl } = this;
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		gl.drawBuffers([gl.BACK]);
 		gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
@@ -79,7 +65,7 @@ Ctx.prototype = {
 		model.draw();
 	},
 
-	clear(color = [0, 0, 0, 1], depth = true) {
+	clear(color = [0, 0, 0, 0], depth = true) {
 		const { gl } = this;
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		gl.clearColor(...color);
@@ -111,16 +97,16 @@ Ctx.prototype = {
 	vs: assign(function(src) {
 		return new VS(this, src);
 	}, {
-		url(src) {
-			return Shader.url(this, src, this.gl.VERTEX_SHADER);
+		url(src, constants) {
+			return Shader.url(this, src, this.gl.VERTEX_SHADER, constants);
 		}
 	}),
 
 	fs: assign(function(src) {
 		return new FS(this, src);
 	}, {
-		url(src) {
-			return Shader.url(this, src, this.gl.FRAGMENT_SHADER);
+		url(src, constants) {
+			return Shader.url(this, src, this.gl.FRAGMENT_SHADER, constants);
 		}
 	}),
 
