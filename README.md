@@ -132,10 +132,12 @@ Enables a specific [extension](#extensions).
 `name`: [Extension](#extensions) name
 ###### `fbo()`
 Creates a [framebuffer](#fbo).
-###### `fs(source)`
+###### `fs(source, constants)`
 Creates a [fragment shader](#fs) from source.
 
 `source`: Shader source `String`
+
+`constants`: `Object` used to resolve [aliases](#alias) in shader source.
 
 Throws `Error` if shader failed to compile.
 ###### `fs.url(src, constants)`
@@ -143,7 +145,7 @@ Returns a promise that is resolved with a [fragment shader](#fs).
 
 `src`: URL of shader source.
 
-`constants`: `Object` used to interpolate shader source by resolving `$<key>` with a value of a matching key.
+`constants`: `Object` used to resolve [aliases](#alias) in shader source.
 
 Throws `Error` if shader failed to compile.
 ###### `model(vertices, indices, vertexLayout)`
@@ -232,10 +234,12 @@ Creates a [uniformbuffer](#ubo) with binding points for each uniform block, by n
 Only blocks from existing programs when the uniformbuffer is created are taken into account.
 
 `usage`: [Usage hint](#buffer-usage-hints). Default is `gl.DYNAMIC_DRAW`.
-###### `vs(source)`
+###### `vs(source, constants)`
 Creates a [vertex shader](#vs) from source `String`.
 
 `source`: Shader source `String`
+
+`constants`: `Object` used to resolve [aliases](#alias) in shader source.
 
 Throws `Error` if shader failed to compile.
 ###### `vs.url(src, constants)`
@@ -243,7 +247,7 @@ Returns a promise that is resolved with a [vertex shader](#vs).
 
 `src`: URL of shader source.
 
-`constants`: `Object` used to interpolate shader source by resolving `$<key>` with a value of a matching key.
+`constants`: `Object` used to resolve [aliases](#alias) in shader source.
 
 Throws `Error` if shader failed to compile.
 
@@ -442,7 +446,7 @@ Returns the normalized vector.
 Returns the difference of two vectors.
 
 #### Matrix
-A matrix is a 4*4 cell array construction of format [row][column].
+A matrix is a 4x4 cell array construction of format [row][column].
 ##### Methods
 ###### `rotate(x, y, z)`
 Returns a matrix for rotation around x, y and z axes.
@@ -537,8 +541,28 @@ Relocates and reorients camera.
 
 `target`: Observation target position.
 
+## Alias
+Aliases is used in the shader source and is mapped to a text fragment before compilation with the help of a resolver-`Object` passed at shader creation. It has the format `$name`. If suffixed with `.f` it is considered a float and is cast accordingly.
+
+Example:
+
+```javascript
+//main.js
+...
+ctx.vs.url('/shader.glsl', { x: 10 });
+...
+
+```
+```javascript
+//shader.glsl
+...
+const float x = $x.f;
+//Results in
+//const float x = 10.0;
+...
+```
 ## GLenums
-GLenum parameters in context methods can be substituted by a `String` where underscore("_") is replaced by dash("-") and all letters are decapitalized.
+GLenum parameters in context methods can be substituted by a `String` where `_` is replaced by `-` and all letters are decapitalized.
 For example, `gl.UNSIGNED_BYTE` becomes `'unsigned-byte'`.
 ### Renderbuffer internal format
 * gl.RGBA4

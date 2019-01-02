@@ -1,12 +1,23 @@
 const { assign } = Object;
 
-function Shader(ctx, source, type) {
+function Shader(ctx, source, type, constants) {
 	const { gl, shader } = ctx;
 	const id = gl.createShader(type);
 	assign(this, {
 		gl, id,
 		pool: shader.pool.add(this)
 	 });
+
+	if (constants) {
+		Object.keys(constants).forEach(c => {
+			const r = new RegExp(`\\$${c}(\.f)?`, 'g');
+			let a;
+			while ((a = r.exec(source)) !== null) {
+				const txt = '' + constants[c];
+				source = source.replace(a[0], a[1] ? txt.replace(/^(\d+)$/, '$1.0') : txt);
+			}
+		});
+	}
 
 	if (type === gl.VERTEX_SHADER) {
 		const a = source.match(/in\s.*;/ig);
@@ -37,12 +48,7 @@ Shader.prototype.dispose = function() {
 Shader.url = async (ctx, src, type, constants) => {
 	const res = await fetch(src);
 	var source = await res.text();
-	if (constants) {
-		Object.keys(constants).forEach(c => {
-			source = source.replace(new RegExp(`\\$${c}`, 'g'), ('' + constants[c]));
-		});
-	}
-	return new Shader(ctx, source, type);
+	return new Shader(ctx, source, type, constants);
 };
 
 export default Shader;

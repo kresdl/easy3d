@@ -94,16 +94,16 @@ Ctx.prototype = {
 		pool: new Set()
 	}),
 
-	vs: assign(function(src) {
-		return new VS(this, src);
+	vs: assign(function(src, constants) {
+		return new VS(this, src, constants);
 	}, {
 		url(src, constants) {
 			return Shader.url(this, src, this.gl.VERTEX_SHADER, constants);
 		}
 	}),
 
-	fs: assign(function(src) {
-		return new FS(this, src);
+	fs: assign(function(src, constants) {
+		return new FS(this, src, constants);
 	}, {
 		url(src, constants) {
 			return Shader.url(this, src, this.gl.FRAGMENT_SHADER, constants);

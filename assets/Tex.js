@@ -58,7 +58,6 @@ function Tex(ctx, w, h, properties) {
 	} else if (mips) {
 		const maxLevel = (typeof mips === 'number'? mips : calcLOD(w, h)) - 1;
 		this.maxLevel = maxLevel;
-		console.log(maxLevel);
 		gl.texStorage2D(t2d, maxLevel + 1, fmt, w, h);
 		gl.texParameteri(t2d, gl.TEXTURE_MAX_LEVEL, maxLevel);
 		gl.texParameteri(t2d, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
