@@ -82,7 +82,7 @@ export default class Mesh {
 	}
 
 	static url = async (ctx, obj, computeTangentFrame, scale) => {
-		const res = await fetch(obj),
+		const res = await fetch(obj, { mode: 'cors' }),
 		data = await res.text(),
 		p = [], n = [], p1 = [], n1 = [], t = [],
 		t1 = [], f = [], m = {}, g = [];

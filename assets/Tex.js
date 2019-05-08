@@ -134,6 +134,7 @@ export default class Tex {
 				tex = new Tex(gl, this.width, this.height, { data: this, fmt, srcFmt, type, mips, wrap }, fb);
 				resolve(tex);
 			};
+			img.crossOrigin = "Anonymous";
 			img.src = url;
 		});
 	}
