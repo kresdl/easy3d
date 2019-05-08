@@ -62,7 +62,7 @@ async function init() {
 
 Feel free to play around with the sample app contained in this package.
 
-### Scene
+## Scene
 Abstraction class for asset management, uniforms handling and render procedure logic. It is provided by the utility method [createScene](#utility-methods).
 
 ##### Properties:
