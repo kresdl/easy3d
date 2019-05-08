@@ -8,7 +8,7 @@ A 3D framework written by [kresdl](https://www.kresdl.com)
 
 #### Concept
 
-What easy3d 3.0 is trying to accomplish is to provide a more declarative way of creating 3D graphics.
+What I'm trying to accomplish with easy3d 3.0 is to provide a more declarative way of creating 3D graphics.
 
 #### Installation
 
@@ -60,7 +60,7 @@ async function init() {
 }
 ```
 
-Feel free to play around with the sample app contained in this package.
+Feel free to play around with the sample app contained in this package. It sheds some light on the concepts covered here.
 
 ## Scene
 Abstraction class for asset management, uniforms handling and render procedure logic. It is provided by the utility method [createScene](#utility-methods).
