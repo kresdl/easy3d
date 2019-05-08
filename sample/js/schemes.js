@@ -6,19 +6,19 @@ export default function* (mvp) {
 	yield {
 		prg: 'torus',
 		mesh: 'torus',
-		uni: {	//Set uniforms
+		uni: {                     //Set uniforms
 			mvp
 		},
-		clear: true,	//Clear targets
-		tg: ['col', 'halo'],	//Multiple targets
-		z: 'z'	//Offscreen depth buffer
+		clear: true,               //Clear targets
+		tg: ['col', 'halo'],       //Multiple targets
+		z: 'z'                     //Offscreen depth buffer
 	};
 
 	//Blur version 2 horisontally
 
 	yield {
 		prg: 'blurx',
-		tex: tex.halo.mip(),	//Generate mip-levels for the shader to be able to sample at a specific LOD
+		tex: tex.halo.mip(),        //Generate mip-levels for the shader to be able to sample at a specific LOD
 		tg: 'bx'
 	};
 
@@ -34,12 +34,12 @@ export default function* (mvp) {
 
 	yield {
 		prg: 'fade',
-		blend: true,	//Draw on top of target
+		blend: true,                 //Draw on top of target
 		tex: 'col',
 		tg: 'mb'
 	};
 
-	//Blend mb and mxy together
+	//Blend mb and bxy together
 
 	yield {
 		prg: 'blend',
