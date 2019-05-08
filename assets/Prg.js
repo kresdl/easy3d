@@ -1,197 +1,163 @@
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
 import VS from './VS.js';
 import FS from './FS.js';
-const {
-  assign
-} = Object;
+
+const { assign } = Object;
+
 export default class Prg {
-  constructor(_gl, vs, fs, _map, _ub) {
-    _defineProperty(this, "setTexture", (sampler, texture) => {
-      const i = this.samplers.indexOf(sampler);
+	constructor(gl, vs, fs, map, ub) {
+		const { attach, detach, use } = this,
+		id = gl.createProgram();
+		assign(this, {
+			gl, id, map, ub,
+			samplers: fs.samplers
+		});
 
-      if (i !== -1) {
-        texture.bind(i);
-      } else {
-        throw `No such sampler as ${sampler} in program ${this}`;
-      }
-    });
+		attach(vs);
+		attach(fs);
 
-    _defineProperty(this, "getBlockSize", block => {
-      const {
-        gl,
-        id,
-        blocks
-      } = this;
-      return gl.getActiveUniformBlockParameter(id, blocks[block], gl.UNIFORM_BLOCK_DATA_SIZE);
-    });
+		vs.input.forEach((e, i) => {
+			gl.bindAttribLocation(id, i, e);
+		});
 
-    _defineProperty(this, "getUniformOffsetMap", block => {
-      const {
-        gl,
-        id,
-        blocks
-      } = this,
-            blockIndex = blocks[block],
-            numUniforms = gl.getActiveUniformBlockParameter(id, blockIndex, gl.UNIFORM_BLOCK_ACTIVE_UNIFORMS),
-            indices = gl.getActiveUniformBlockParameter(id, blockIndex, gl.UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES),
-            offsets = gl.getActiveUniforms(id, indices, gl.UNIFORM_OFFSET),
-            map = {};
+		gl.linkProgram(id);
 
-      for (let i = 0; i < numUniforms; i++) {
-        const n = gl.getActiveUniform(id, indices[i]).name.replace("[0]", "");
-        map[n] = offsets[i];
-      }
+		detach(vs);
+		detach(fs);
 
-      return map;
-    });
+		if (!gl.getProgramParameter(id, gl.LINK_STATUS)) {
+			throw "Failed to link shader. " + gl.getProgramInfoLog(id, 1000);
+		}
 
-    _defineProperty(this, "use", () => {
-      const {
-        gl,
-        id
-      } = this;
-      gl.useProgram(id);
-    });
+		// Get uniform blocks
 
-    _defineProperty(this, "attach", shader => {
-      const {
-        gl,
-        id
-      } = this;
-      gl.attachShader(id, shader.id);
-    });
+		var blockCount = gl.getProgramParameter(id, gl.ACTIVE_UNIFORM_BLOCKS);
 
-    _defineProperty(this, "detach", shader => {
-      const {
-        gl,
-        id
-      } = this;
-      gl.detachShader(id, shader.id);
-    });
+		if (blockCount) {
+			this.blocks = {};
+		}
 
-    _defineProperty(this, "dispose", () => {
-      const {
-        gl,
-        id,
-        vs,
-        fs,
-        detach,
-        map,
-        ub
-      } = this;
-      Prg.unuse(gl);
-      gl.deleteProgram(id);
-      Object.keys(this.blocks).forEach(name => {
-        if (map[name].length === 1) {
-          delete map[name];
-        } else {
-          map[name] = map[name].filter(e => e !== this);
-        }
-      });
-      ub.configure();
-    });
+		for (let i = 0; i < blockCount; i++) {
+			const name = gl.getActiveUniformBlockName(id, i);
+			this.blocks[name] = i;
+			if (!map[name]) {
+				map[name] = [this];
+			} else {
+				map[name].push(this);
+			}
+		}
 
-    _defineProperty(this, "drop", () => {
-      this.disposeAfterUse = true;
-      return this;
-    });
+		// Initialize samplers
 
-    const {
-      attach,
-      detach,
-      use
-    } = this,
-          _id = _gl.createProgram();
+		const { samplers } = this;
 
-    assign(this, {
-      gl: _gl,
-      id: _id,
-      map: _map,
-      ub: _ub,
-      samplers: fs.samplers
-    });
-    attach(vs);
-    attach(fs);
-    vs.input.forEach((e, i) => {
-      _gl.bindAttribLocation(_id, i, e);
-    });
+		use();
 
-    _gl.linkProgram(_id);
+		if (samplers) {
+			for (let i = 0; i < samplers.length; i++) {
+				const n = samplers[i];
+				gl.uniform1i(gl.getUniformLocation(id, n), i);
+			}
+		}
+		Prg.unuse(gl);
 
-    detach(vs);
-    detach(fs);
+		gl.validateProgram(id);
 
-    if (!_gl.getProgramParameter(_id, _gl.LINK_STATUS)) {
-      throw "Failed to link shader. " + _gl.getProgramInfoLog(_id, 1000);
-    } // Get uniform blocks
+		if (!gl.getProgramParameter(id, gl.VALIDATE_STATUS)) {
+			throw "Failed to validate shader. " + gl.getProgramInfoLog(id, 1000);
+		}
 
+		ub.configure();
+	}
 
-    var blockCount = _gl.getProgramParameter(_id, _gl.ACTIVE_UNIFORM_BLOCKS);
+	get tex() {
+		return new Proxy({}, {
+			set: (tg, prop, val) => {
+				this.setTexture(prop, val);
+				return true;
+			}
+		});
+	}
 
-    if (blockCount) {
-      this.blocks = {};
-    }
+	set tex(t) {
+		t.entries().forEach(([prop, val]) => {
+			this.setTexture(prop, val);
+		});
+	}
 
-    for (let i = 0; i < blockCount; i++) {
-      const name = _gl.getActiveUniformBlockName(_id, i);
+	setTexture = (sampler, texture) => {
+		const i = this.samplers.indexOf(sampler);
+		if (i !== -1) {
+			texture.bind(i);
+		} else {
+			throw `No such sampler as ${sampler} in program ${this}`;
+		}
+	}
 
-      this.blocks[name] = i;
+	getBlockSize = block => {
+		const { gl, id, blocks } = this;
+		return gl.getActiveUniformBlockParameter(id, blocks[block], gl.UNIFORM_BLOCK_DATA_SIZE);
+	}
 
-      if (!_map[name]) {
-        _map[name] = [this];
-      } else {
-        _map[name].push(this);
-      }
-    } // Initialize samplers
+	getUniformOffsetMap = block => {
+		const { gl, id, blocks } = this,
+		blockIndex = blocks[block],
+		numUniforms = gl.getActiveUniformBlockParameter(id, blockIndex, gl.UNIFORM_BLOCK_ACTIVE_UNIFORMS),
 
+		indices = gl.getActiveUniformBlockParameter(id, blockIndex, gl.UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES),
+		offsets = gl.getActiveUniforms(id, indices, gl.UNIFORM_OFFSET),
+		map = {};
 
-    const {
-      samplers
-    } = this;
-    use();
+		for (let i = 0; i < numUniforms; i++) {
+			const n = gl.getActiveUniform(id, indices[i]).name.replace("[0]", "");
+			map[n] = offsets[i];
+		}
+		return map;
+	}
 
-    if (samplers) {
-      for (let i = 0; i < samplers.length; i++) {
-        const n = samplers[i];
+	use = () => {
+		const { gl, id } = this;
+		gl.useProgram(id);
+	}
 
-        _gl.uniform1i(_gl.getUniformLocation(_id, n), i);
-      }
-    }
+	attach = shader => {
+		const { gl, id } = this;
+		gl.attachShader(id, shader.id);
+	}
 
-    Prg.unuse(_gl);
+	detach = shader => {
+		const { gl, id } = this;
+		gl.detachShader(id, shader.id);
+	}
 
-    _gl.validateProgram(_id);
+	dispose = () => {
+		const { gl, id, vs, fs, detach, map, ub } = this;
+		Prg.unuse(gl);
+		gl.deleteProgram(id);
+		Object.keys(this.blocks).forEach(name => {
+			if (map[name].length === 1) {
+				delete map[name];
+			} else {
+				map[name] = map[name].filter(e => e !== this);
+			}
+		});
+		ub.configure();
+	}
 
-    if (!_gl.getProgramParameter(_id, _gl.VALIDATE_STATUS)) {
-      throw "Failed to validate shader. " + _gl.getProgramInfoLog(_id, 1000);
-    }
+	drop = () => {
+		this.disposeAfterUse = true;
+		return this;
+	}
 
-    _ub.configure();
-  }
+	static unuse = gl => {
+		gl.useProgram(null);
+	}
 
-  get tex() {
-    return new Proxy({}, {
-      set: (tg, prop, val) => {
-        this.setTexture(prop, val);
-        return true;
-      }
-    });
-  }
-
-  set tex(t) {
-    t.entries().forEach(([prop, val]) => {
-      this.setTexture(prop, val);
-    });
-  }
-
-}
-
-_defineProperty(Prg, "unuse", gl => {
-  gl.useProgram(null);
-});
-
-_defineProperty(Prg, "paste", (ctx, vs, map, ub) => new Prg(ctx, vs, new FS(ctx, `#version 300 es
+	static paste = (ctx, vs, map, ub) =>
+		new Prg(
+			ctx,
+			vs,
+			new FS(ctx,
+`#version 300 es
 precision mediump float;
 
 uniform sampler2D col;
@@ -201,4 +167,5 @@ out vec4 rgba;
 
 void main() {
 	rgba = texture(col, f_tex);
-}`), map, ub));
+}`), map, ub)
+}

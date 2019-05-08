@@ -1,45 +1,34 @@
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+const { assign } = Object;
 
-const {
-  assign
-} = Object;
 export default class RBO {
-  constructor(_gl, w, h, fmt) {
-    _defineProperty(this, "bind", () => {
-      const {
-        gl,
-        id
-      } = this;
-      gl.bindRenderbuffer(gl.RENDERBUFFER, id);
-    });
+	constructor(gl, w, h, fmt) {
+		assign(this, {
+			gl,
+			id: gl.createRenderbuffer()
+		});
 
-    _defineProperty(this, "dispose", () => {
-      const {
-        gl,
-        id
-      } = this;
-      RBO.unbind(gl);
-      gl.deleteRenderbuffer(id);
-    });
+		this.bind();
+		gl.renderbufferStorage(gl.RENDERBUFFER, fmt, w, h);
+		RBO.unbind(gl);
+	}
 
-    _defineProperty(this, "discard", () => {
-      this.disposeAfterUse = true;
-      return this;
-    });
+	bind = () => {
+		const { gl, id } = this;
+		gl.bindRenderbuffer(gl.RENDERBUFFER, id);
+	}
 
-    assign(this, {
-      gl: _gl,
-      id: _gl.createRenderbuffer()
-    });
-    this.bind();
+	dispose = () => {
+		const { gl, id } = this;
+		RBO.unbind(gl);
+		gl.deleteRenderbuffer(id);
+	}
 
-    _gl.renderbufferStorage(_gl.RENDERBUFFER, fmt, w, h);
+	discard = () => {
+		this.disposeAfterUse = true;
+		return this;
+	}
 
-    RBO.unbind(_gl);
-  }
-
+	static unbind = gl => {
+		gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+	}
 }
-
-_defineProperty(RBO, "unbind", gl => {
-  gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-});

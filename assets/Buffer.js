@@ -1,66 +1,40 @@
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+const { assign } = Object;
 
-const {
-  assign
-} = Object;
-export default class _class {
-  constructor(_gl, _type, _usage) {
-    _defineProperty(this, "bind", () => {
-      const {
-        gl,
-        id,
-        type
-      } = this;
-      gl.bindBuffer(type, id);
-    });
+export default class {
+	static unbind = (gl, type) => {
+		gl.bindBuffer(type, null);
+	}
 
-    _defineProperty(this, "storage", size => {
-      const {
-        gl,
-        type,
-        usage
-      } = this;
-      gl.bufferData(type, size, usage);
-    });
+	constructor(gl, type, usage) {
+		assign(this, {
+			gl,	type, usage,
+			id: gl.createBuffer()
+		});
+	}
 
-    _defineProperty(this, "data", array => {
-      const {
-        gl,
-        type,
-        usage
-      } = this;
-      gl.bufferData(type, array, usage);
-    });
+	bind = () => {
+		const { gl, id, type } = this;
+		gl.bindBuffer(type, id);
+	}
 
-    _defineProperty(this, "subData", (array, offset) => {
-      const {
-        gl,
-        type
-      } = this;
-      gl.bufferSubData(type, offset, Float32Array.from(array));
-    });
+	storage = size => {
+		const { gl, type, usage } = this;
+		gl.bufferData(type, size, usage);
+	}
 
-    _defineProperty(this, "dispose", () => {
-      const {
-        gl,
-        id,
-        type,
-        pool
-      } = this;
-      Buffer.unbind(gl, type);
-      gl.deleteBuffer(id);
-    });
+	data = array => {
+		const { gl, type, usage } = this;
+		gl.bufferData(type, array, usage);
+	}
 
-    assign(this, {
-      gl: _gl,
-      type: _type,
-      usage: _usage,
-      id: _gl.createBuffer()
-    });
-  }
+	subData = (array, offset) => {
+		const { gl, type } = this;
+		gl.bufferSubData(type, offset, Float32Array.from(array));
+	}
 
+	dispose = () => {
+		const { gl, id, type, pool } = this;
+		Buffer.unbind(gl, type);
+		gl.deleteBuffer(id);
+	}
 }
-
-_defineProperty(_class, "unbind", (gl, type) => {
-  gl.bindBuffer(type, null);
-});
