@@ -8,16 +8,16 @@ export const id = () => [
 ];
 
 export function rotate(x, y, z) {
-	const m1 = rotateX(x);
-	const m2 = rotateY(y);
-	const m3 = rotateZ(z);
+	const m1 = rotateX(x),
+	m2 = rotateY(y),
+	m3 = rotateZ(z);
 	return concat(concat(m1, m2), m3);
 }
 
 export function rotateX(r) {
-	const m = id();
-	const sin = Math.sin(r);
-	const cos = Math.cos(r);
+	const m = id(),
+	sin = Math.sin(r),
+	cos = Math.cos(r);
 	m[1][1] = cos;
 	m[2][1] = -sin;
 
@@ -27,9 +27,9 @@ export function rotateX(r) {
 }
 
 export function rotateY(r) {
-	const m = id();
-	const sin = Math.sin(r);
-	const cos = Math.cos(r);
+	const m = id(),
+	sin = Math.sin(r),
+	cos = Math.cos(r);
 	m[0][0] = cos;
 	m[2][0] = -sin;
 
@@ -39,9 +39,9 @@ export function rotateY(r) {
 }
 
 export function rotateZ(r) {
-	const m = id();
-	const sin = Math.sin(r);
-	const cos = Math.cos(r);
+	const m = id(),
+	sin = Math.sin(r),
+	cos = Math.cos(r);
 	m[0][0] = cos;
 	m[1][0] = -sin;
 
@@ -72,10 +72,10 @@ export function arb(a, b, angle) {
 }
 
 export function view(pos, target) {
-	const z = nrm(sub(target, pos));
-	const x = nrm(cross(z, [0, 1, 0]));
-	const y = cross(x, z);
-	const m = id();
+	const z = nrm(sub(target, pos)),
+	x = nrm(cross(z, [0, 1, 0])),
+	y = cross(x, z),
+	m = id();
 	m[0][0] = x[0];
 	m[1][0] = x[1];
 	m[2][0] = x[2];
@@ -94,10 +94,10 @@ export function view(pos, target) {
 }
 
 export function glView(pos, target) {
-	const z = nrm(sub(pos, target));
-	const x = nrm(cross([0, 1, 0], z));
-	const y = cross(z, x);
-	const m = id();
+	const z = nrm(sub(pos, target)),
+	x = nrm(cross([0, 1, 0], z)),
+	y = cross(z, x),
+	m = id();
 	m[0][0] = x[0];
 	m[1][0] = x[1];
 	m[2][0] = x[2];
@@ -116,10 +116,10 @@ export function glView(pos, target) {
 }
 
 export function proj(zNear, zFar, fov, aspectRatio) {
-	const m = id();
-	const py = 1 / Math.tan(fov / 2);
-	const px = py / aspectRatio;
-	const pz = zFar / (zFar - zNear);
+	const m = id(),
+	py = 1 / Math.tan(fov / 2),
+	px = py / aspectRatio,
+	pz = zFar / (zFar - zNear);
 	m[0][0] = px;
 
 	m[1][1] = -py;
@@ -133,10 +133,10 @@ export function proj(zNear, zFar, fov, aspectRatio) {
 }
 
 export function glProj(zNear, zFar, fov, aspectRatio) {
-	const m = id();
-	const py = 1 / Math.tan(fov / 2);
-	const px = py / aspectRatio;
-	const pz = (zFar + zNear) / (zNear - zFar);
+	const m = id(),
+	py = 1 / Math.tan(fov / 2),
+	px = py / aspectRatio,
+	pz = (zFar + zNear) / (zNear - zFar);
 	m[0][0] = px;
 
 	m[1][1] = py;

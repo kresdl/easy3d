@@ -1,104 +1,120 @@
-const { assign } = Object;
+import setBlendState from '../setBlendState.js';
 
-function FBO(ctx) {
-	const { gl, fbo } = ctx;
-	assign(this, {
+const { assign } = Object,
+{ isFinite, isInteger } = Number,
+{ isArray } = Array;
+
+export default class {
+	attachments = new Map()
+
+	constructor(gl) {
+		assign(this, {
 			gl,
-			id: gl.createFramebuffer(),
-			attachments: new Map(),
-			pool: fbo.pool.add(this)
-	});
+			id: gl.createFramebuffer()
+		});
 
-	return new Proxy(this, {
-		set: function(tg, p, val) {
-			const pt = Number.parseInt(p);
-			if (Number.isInteger(pt)) {
-				tg.attach(pt, val);
-			} else {
-				Reflect.set(...arguments);
+		return new Proxy(this, {
+			set: function(fb, p, val) {
+				const pt = Number(p);
+				if (isInteger(pt)) {
+					fb.attach(pt, val);
+				} else if (p === 'depth') {
+					fb.attach(val);
+				} else if (p === 'target') {
+					const { tg, z } = val;
+					fb.detachAll();
+					if (isArray(tg)) {
+						tg.forEach((t, i) => {
+							fb.attach(i, t);
+						});
+					} else {
+						fb.attach(0, tg);
+					}
+					fb.attach(z);
+				} else {
+					Reflect.set(...arguments);
+				}
+				return true;
 			}
-			return true;
-		}
-	});
-}
+		});
+	}
 
-FBO.prototype = {
-	set depth(rbo) {
-		this.attachDepth(rbo);
-	},
-
-	attach(pt, level) {
-		const { gl, id } = this;
-		const p = gl.COLOR_ATTACHMENT0 + pt;
-		gl.bindFramebuffer(gl.FRAMEBUFFER, id);
-		if (level) {
-			gl.framebufferTexture2D(gl.FRAMEBUFFER, p, gl.TEXTURE_2D, level.tex, level.lv);
-			this.attachments.set(p, level);
+	attach = (pt, level) => {
+		const { gl, attachments, bind } = this;
+		bind();
+		if (isFinite(pt)) {
+			const p = gl.COLOR_ATTACHMENT0 + pt;
+			if (level) {
+				attachments.set(pt, level);
+				gl.framebufferTexture2D(gl.FRAMEBUFFER, p, gl.TEXTURE_2D, level.tex.id, level.lod);
+			} else {
+				attachments.delete(p);
+				gl.framebufferTexture2D(gl.FRAMEBUFFER, p, gl.TEXTURE_2D, null, 0);
+			}
 		} else {
-			gl.framebufferTexture2D(gl.FRAMEBUFFER, p, gl.TEXTURE_2D, null, 0);
-			this.attachments.delete(p);
+			gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, pt && pt.id);
 		}
-		FBO.unbind(gl);
-	},
+	}
 
-	attachDepth(depth) {
-		const { gl, id } = this;
-		gl.bindFramebuffer(gl.FRAMEBUFFER, id);
-		const did = (depth ? depth.id : null);
-		gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT,
-			gl.RENDERBUFFER, depth ? depth.id : null);
-		FBO.unbind(gl);
-	},
+	detachAll = () => {
+		const { gl, attachments, bind } = this;
+		bind();
+		[...attachments.keys()].forEach(pt => {
+			gl.framebufferTexture2D(gl.FRAMEBUFFER, pt + gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, null, 0);
+		});
+		gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_STENCIL_ATTACHMENT, gl.RENDERBUFFER, null);
+		attachments.clear();
+	}
 
-	validate() {
-		const { gl } = this;
-		this.bind();
+	validate = () => {
+		const { gl, bind } = this;
+		bind();
 		return gl.checkFramebufferStatus(gl.FRAMEBUFFER);
-	},
+	}
 
-	bind() {
+	bind = () => {
 		const { gl, id } = this;
 		gl.bindFramebuffer(gl.FRAMEBUFFER, id);
-	},
+	}
 
-	dispose() {
-		const { gl, id, pool } = this;
+	dispose = () => {
+		const { gl, id } = this;
 		FBO.unbind(gl);
 		gl.deleteFramebuffer(id);
-		pool.delete(this);
-	},
+	}
 
-	draw(model, prg) {
-		const { gl, blend } = this;
-		if (blend) {
-			gl.enable(gl.BLEND);
-		} else {
-			gl.disable(gl.BLEND);
-		}
-		this.bind();
-		gl.drawBuffers(this.attachments.keys());
-		const { w, h } = this.attachments.values().next().value;
+	draw = (model, prg, blend = false) => {
+		const { gl, id, attachments } = this,
+		drawBuffers = [...attachments.keys()].map(e => e + gl.COLOR_ATTACHMENT0),
+		{ w, h } = attachments.values().next().value;
+		gl.bindFramebuffer(gl.FRAMEBUFFER, id);
+		gl.drawBuffers(drawBuffers);
+		setBlendState(gl, blend === true ? 'over' : blend);
 		gl.viewport(0, 0, w, h);
 		prg.use();
 		model.draw();
-	},
+	}
 
-	clear(color = [0, 0, 0, 0], depth = true) {
-		const { gl } = this;
-		this.bind();
-		gl.drawBuffers(this.attachments.keys());
-		gl.clearColor(...color);
+	clear = (colors = true, depth = true) => {
+		const { gl, bind, attachments } = this,
+		pts = [...attachments.keys()];
+		colors = colors === true ? [0, 0, 0, 0] : colors;
+		depth = depth === true ? 1.0 : depth;
+		bind();
+		gl.drawBuffers(pts.map(e => e + gl.COLOR_ATTACHMENT0));
+		if (colors) {
+			pts.forEach((pt, i) => {
+				gl.clearBufferfv(gl.COLOR, pt, isFinite(colors[0]) ? colors : colors[i]);
+			});
+		}
 		if (depth) {
 			gl.depthMask(true);
-			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-		} else {
-			gl.clear(gl.COLOR_BUFFER_BIT);
+			gl.clearBufferfi(gl.DEPTH_STENCIL, 0, depth, 0);
 		}
+		return this;
 	}
-};
 
-FBO.unbind = gl => {
-	gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-};
-
-export default FBO;
+	static unbind = gl => {
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+	}
+}

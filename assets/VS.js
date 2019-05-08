@@ -1,9 +1,26 @@
 import Shader from './Shader.js';
 
-function VS(ctx, src, constants) {
-	Shader.call(this, ctx, src, gl.VERTEX_SHADER, constants);
+export default class VS extends Shader {
+	constructor(gl, src, constants) {
+		super(gl, src, gl.VERTEX_SHADER, constants);
+	}
+
+	static url = async (gl, src, constants) => {
+		const res = await fetch(src),
+		source = await res.text();
+		return new VS(gl, source, constants);
+	}
+
+	static quad = gl =>
+		new VS(gl,
+`#version 300 es
+in vec3 pos;
+in vec2 tex;
+
+out vec2 f_tex;
+
+void main() {
+	f_tex = tex;
+	gl_Position = vec4(pos, 1.0);
+}`)
 }
-
-VS.prototype = Object.create(Shader.prototype);
-
-export default VS;

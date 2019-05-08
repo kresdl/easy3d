@@ -1,13 +1,11 @@
 import Buffer from './Buffer.js';
 
-function VBO(ctx, usage) {
-	Buffer.call(this, ctx, ctx.gl.ARRAY_BUFFER, usage);
+export default class extends Buffer {
+	constructor(gl, usage) {
+		super(gl, gl.ARRAY_BUFFER, usage);
+	}
+
+	static unbind = gl => {
+		Buffer.unbind(gl, gl.ARRAY_BUFFER);
+	}
 }
-
-VBO.prototype = Object.create(Buffer.prototype);
-
-VBO.unbind = gl => {
-	Buffer.unbind(gl, gl.ARRAY_BUFFER);
-};
-
-export default VBO;

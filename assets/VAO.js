@@ -1,34 +1,29 @@
 const { assign } = Object;
 
-function VAO(ctx, indexCount, attributeCount) {
-	const { gl, vao } = ctx;
-	assign(this, {
-		gl,	indexCount,	attributeCount,
-		id: gl.createVertexArray(),
-		pool: vao.pool.add(this)
-	});
-}
+export default class {
+	constructor(gl, indexCount, attributeCount) {
+		assign(this, {
+			gl,	indexCount,	attributeCount,
+			id: gl.createVertexArray()
+		});
+	}
 
-VAO.prototype = {
-	bind() {
+	bind = () => {
 		const { gl, id } = this;
 		gl.bindVertexArray(id);
-	},
+	}
 
-	dispose() {
-		const { gl, id, attributeCount, pool } = this;
+	dispose = () => {
+		const { gl, id, attributeCount } = this;
 		this.bind();
 		for (let i = 0; i < attributeCount; i++) {
 			gl.disableVertexAttribArray(i);
 		}
 		VAO.unbind(gl);
 		gl.deleteVertexArray(id);
-		pool.delete(this);
 	}
-};
 
-VAO.unbind = gl => {
-	gl.bindVertexArray(null);
-};
-
-export default VAO;
+	static unbind = gl => {
+		gl.bindVertexArray(null);
+	}
+}

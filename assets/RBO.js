@@ -1,34 +1,34 @@
 const { assign } = Object;
 
-function RBO(ctx, w, h, fmt) {
-	const { gl, rbo } = ctx;
-	assign(this, {
-		gl,
-		id: gl.createRenderbuffer(),
-		pool: rbo.pool.add(this)
-	});
+export default class RBO {
+	constructor(gl, w, h, fmt) {
+		assign(this, {
+			gl,
+			id: gl.createRenderbuffer()
+		});
 
-	this.bind();
-	gl.renderbufferStorage(gl.RENDERBUFFER, fmt, w, h);
-	RBO.unbind(gl);
-};
+		this.bind();
+		gl.renderbufferStorage(gl.RENDERBUFFER, fmt, w, h);
+		RBO.unbind(gl);
+	}
 
-RBO.prototype = {
-	bind() {
+	bind = () => {
 		const { gl, id } = this;
 		gl.bindRenderbuffer(gl.RENDERBUFFER, id);
-	},
+	}
 
-	dispose() {
-		const { gl, id, pool} = this;
+	dispose = () => {
+		const { gl, id } = this;
 		RBO.unbind(gl);
 		gl.deleteRenderbuffer(id);
-		pool.delete(this);
 	}
-};
 
-RBO.unbind = gl => {
-	gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-};
+	discard = () => {
+		this.disposeAfterUse = true;
+		return this;
+	}
 
-export default RBO;
+	static unbind = gl => {
+		gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+	}
+}

@@ -1,24 +1,24 @@
 {
   "name": "easy3d",
-  "version": "3.0.0-beta.1",
-  "description": "Web 3D framework",
+  "version": "3.0.0",
+  "description": "webgl framework",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/kresdl/easy3d.git"
   },
   "keywords": [
     "3d",
-    "webgl",
     "gl",
-    "opengl",
-    "vector",
-    "matrix"
+    "webgl"
   ],
-  "author": {
-    "name": "Peter Hallström",
-    "email": "peter.hallstrom@gmail.com",
-    "url": "kresdl.com"
+  "author": "Peter Hallström",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kresdl/easy3d/issues"
   },
-  "homepage": "https://github.com/kresdl/easy3d#readme",
-  "license": "ISC"
+  "homepage": "https://github.com/kresdl/easy3d#readme"
 }
