@@ -1,29 +1,44 @@
-const { assign } = Object;
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-export default class {
-	constructor(gl, indexCount, attributeCount) {
-		assign(this, {
-			gl,	indexCount,	attributeCount,
-			id: gl.createVertexArray()
-		});
-	}
+const {
+  assign
+} = Object;
+export default class _class {
+  constructor(_gl, indexCount, _attributeCount) {
+    _defineProperty(this, "bind", () => {
+      const {
+        gl,
+        id
+      } = this;
+      gl.bindVertexArray(id);
+    });
 
-	bind = () => {
-		const { gl, id } = this;
-		gl.bindVertexArray(id);
-	}
+    _defineProperty(this, "dispose", () => {
+      const {
+        gl,
+        id,
+        attributeCount
+      } = this;
+      this.bind();
 
-	dispose = () => {
-		const { gl, id, attributeCount } = this;
-		this.bind();
-		for (let i = 0; i < attributeCount; i++) {
-			gl.disableVertexAttribArray(i);
-		}
-		VAO.unbind(gl);
-		gl.deleteVertexArray(id);
-	}
+      for (let i = 0; i < attributeCount; i++) {
+        gl.disableVertexAttribArray(i);
+      }
 
-	static unbind = gl => {
-		gl.bindVertexArray(null);
-	}
+      VAO.unbind(gl);
+      gl.deleteVertexArray(id);
+    });
+
+    assign(this, {
+      gl: _gl,
+      indexCount,
+      attributeCount: _attributeCount,
+      id: _gl.createVertexArray()
+    });
+  }
+
 }
+
+_defineProperty(_class, "unbind", gl => {
+  gl.bindVertexArray(null);
+});

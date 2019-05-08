@@ -79,15 +79,13 @@ Abstraction class for asset management, uniforms handling and render procedure l
 
 **`render(arg)`**
 
-Runs [scheme](#scheme).
+Runs [scheme](#scheme) or [directive](#directive).
 
-`arg`: [Scheme](#scheme) or `Object`. If `Object`, the main scheme is executed and is passed this argument. If no main scheme is assigned, the argument is invoked as a [directive](#directive).
+`arg`: `Function` or `Object`. If `Function`, it is considered a [scheme](#scheme). If `Object` and a main scheme is assigned, that scheme is executed and passed this `Object`. If no main scheme is assigned, the `Object` is considered a [directive](#directive).
 
 ## Assets
 
 ### Program
-
-
 
 ##### Methods:
 

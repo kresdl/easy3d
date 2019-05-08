@@ -1,11 +1,13 @@
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 import Buffer from './Buffer.js';
+export default class _class extends Buffer {
+  constructor(gl, usage) {
+    super(gl, gl.ELEMENT_ARRAY_BUFFER, usage);
+  }
 
-export default class extends Buffer {
-	static unbind = gl => {
-		Buffer.unbind(gl, gl.ELEMENT_ARRAY_BUFFER);
-	}
-
-	constructor(gl, usage) {
-		super(gl, gl.ELEMENT_ARRAY_BUFFER, usage);
-	}
 }
+
+_defineProperty(_class, "unbind", gl => {
+  Buffer.unbind(gl, gl.ELEMENT_ARRAY_BUFFER);
+});
