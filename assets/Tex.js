@@ -140,8 +140,8 @@ export default class Tex {
 	}
 
 	static data = (gl, data, properties = {}, fb) => {
-		const { w, h, fmt = gl.RGBA8, srcFmt = gl.RGBA, type = gl.UNSIGNED_BYTE, mips = false, wrap = gl.REPEAT } = properties;
-		return new Tex(gl, data.width || w, data.height || h, { data, fmt, srcFmt, type, mips, wrap }, fb);
+		const { width, height, fmt = gl.RGBA8, srcFmt = gl.RGBA, type = gl.UNSIGNED_BYTE, mips = false, wrap = gl.REPEAT } = properties;
+		return new Tex(gl, data.width || width, data.height || height, { data, fmt, srcFmt, type, mips, wrap }, fb);
 	}
 }
 

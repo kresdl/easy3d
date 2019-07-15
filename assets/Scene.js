@@ -96,15 +96,35 @@ export default class {
   init = async setup => {
     const { assets, ext, scheme, statics, uni } = setup,
     { ctx, createTextures, createMeshes, createPrograms, createRenderbuffers, render } = this,
-    { tex, mesh, prg, rbo, vs, fs } = assets;
+    { tex, mesh, prg, rbo } = assets;
 
     ext && (isArray(ext) ? ext.forEach(e => { ctx.ext(e); }) : ctx.ext(ext));
 
     this.assets = {
-      tex: tex && await createTextures(tex),
-      mesh: mesh && await createMeshes(mesh),
-      prg: prg && await createPrograms(vs, fs, prg),
-      rbo: rbo && createRenderbuffers(rbo)
+      tex: assign(tex && await createTextures(tex) || {}, {
+        async put(dyn) {
+          keys(dyn).forEach(e => this[e] && this[e].dispose());
+          assign(this, await createTextures(dyn));
+        }
+      }),
+      mesh: assign(mesh && await createMeshes(mesh) || {}, {
+        async put(dyn) {
+          keys(dyn).forEach(e => this[e] && this[e].dispose());
+          assign(this, await createMeshes(dyn));
+        }
+      }),
+      prg: assign(prg && await createPrograms(prg) || {}, {
+        async put(dyn) {
+          keys(dyn).forEach(e => this[e] && this[e].dispose());
+          assign(this, await createPrograms(dyn));
+        }
+      }),
+      rbo: assign(rbo && await createRenderbuffers(rbo) || {}, {
+        async put(dyn) {
+          keys(dyn).forEach(e => this[e] && this[e].dispose());
+          assign(this, await createRenderbuffers(dyn));
+        }
+      })
     };
 
     assign(this, {
@@ -114,12 +134,8 @@ export default class {
 
   render = arg => {
     const { execute } = this;
-    if (typeof arg === 'function') {
-      for (const dir of arg.call(this)) {
-        execute(dir);
-      }
-    } else if (this.scheme) {
-      for (const dir of this.scheme(arg)) {
+    if (typeof arg[Symbol.iterator] === 'function') {
+      for (const dir of arg) {
         execute(dir);
       }
     } else {
@@ -208,10 +224,10 @@ export default class {
     }), {});
   }
 
-  createPrograms = async (v, f, p) => {
+  createPrograms = async p => {
     const { loadPrg } = this;
 
-    async function reduce(cb, init) {
+    async function asyncReduce(cb, init) {
       var acc = init;
       for (let e of this) {
         acc = await cb(acc, e);
@@ -219,123 +235,63 @@ export default class {
       return acc;
     }
 
-    const { vs, fs } = this;
-    var ve, fr;
-
-    if (v) {
-      ve = await reduce.call(entries(v), async (obj, [key, val]) => ({
-        ...obj,
-        [key]: isArray(val) ? await vs.url(...val) : await vs.url(val)
-      }), {});
-    }
-
-    if (f) {
-      fr = await reduce.call(entries(f), async (obj, [key, val]) => ({
-        ...obj,
-        [key]: isArray(val) ? await fs.url(...val) : await fs.url(val)
-      }), {});
-    }
-
-    const pr = await reduce.call(entries(p), async (obj, [key, val]) => ({
+    return await asyncReduce.call(entries(p), async (obj, [key, val]) => ({
       ...obj,
-      [key]: await loadPrg(val, ve, fr)
+      [key]: await loadPrg(val)
     }), {});
-
-    ve && values(ve).forEach(e => {
-      e.dispose();
-    });
-
-    fr && values(fr).forEach(e => {
-      e.dispose();
-    });
-
-    return pr;
   }
 
   createRenderbuffers = desc => {
     const { rbo } = this;
     return entries(desc).reduce((x, [key, val]) => ({
       ...x,
-      [key]: rbo(...val)
+      [key]: rbo(val.width, val.height, val.fmt)
     }), {});
   }
 
   loadTex = async t => {
     const { tex, loadTex } = this;
     if (typeof t === 'string') {
-      return tex.url(t);
-    } else if (isArray(t)) {
-      const p = t[0];
-      if (isFinite(p)) {
-        return tex(...t);
-      } else if (typeof p === 'string') {
-        return tex.url(...t);
-      } else if (p.then) {
-        const t2 = await p,
-        r = tex.data(t2, t[1]);
-        t2.close && t2.close();
-        return r;
+      return await tex.url(t);
+    } else if (t.src && typeof t.onload === 'undefined') {
+      if (typeof t.src === 'string') {
+        return await tex.url(t.src, t);
       } else {
-        return tex.data(...t);
+        return tex.data(t.src, t);
       }
-    } else if (typeof t === 'function') {
-      const a = [];
-      for (const e of t()) {
-        a.push(loadTex(e));
-      }
-      return Promise.all(a);
-    } else if (t.then) {
-      const t2 = await t,
-      r = tex.data(t2);
-      t2.close && t2.close();
-      return r;
+    } else if (typeof t[Symbol.iterator] === 'function') {
+      return await Promise.all([...t].map(loadTex));
+    } else if (t.width) {
+      return tex(t.width, t.height, t);
     } else {
       return tex.data(t);
     }
   }
 
-  loadPrg = async (p, v, f) => {
-    const { vs, fs, prg, quadVS } = this,
-    rx = /\.glsl$/i;
-    if (isArray(p)) {
-      const [a, b] = p;
-      if (isArray(b) || typeof b === 'string') {
-        var ve, fr;
-        if (isArray(a)) {
-          ve = await vs.url(...a);
-        } else if (a.match(rx)) {
-          ve = await vs.url(a);
-        }
-
-        if (isArray(b)) {
-          fr = await fs.url(...b);
-        } else if (b.match(rx)) {
-          fr = await fs.url(b);
-        }
-
-        const pr = prg(ve || v[a], fr || f[b]);
-        ve && ve.dispose();
-        fr && fr.dispose();
-        return pr;
+  loadPrg = async p => {
+    const { vs, fs, prg, quadVS } = this;
+    let v, f;
+    if (p.vs) {
+      if (typeof p.vs === 'string') {
+        v = await vs.url(p.vs);
       } else {
-        const fr = await fs.url(a, b),
-        pr = prg(quadVS, fr);
-        fr.dispose();
-        return pr;
+        v = await vs.url(p.vs.src, p.vs.var);
       }
-    } else if (p.match(rx)) {
-      const fr = await fs.url(p),
-      pr =  prg(quadVS, fr);
-      fr.dispose();
-      return pr;
-    } else {
-      return prg(quadVS, f[p]);
     }
+    if (typeof p.fs === 'string') {
+      f = await fs.url(p.fs);
+    } else {
+      f = await fs.url(p.fs.src, p.fs.var);
+    }
+    const pr = prg(v || quadVS, f);
+    v && v.dispose();
+    f.dispose();
+    return pr;
   }
 
   loadMesh = m => {
     const { mesh } = this;
-    return isArray(m) ? mesh.url(...m) : mesh.url(m);
+    return typeof m === 'string' ? mesh.url(m) : mesh.url(m.src, m.computeTangentFrame, m.scale);
   }
 
   resolveTargets = t => {
@@ -418,7 +374,7 @@ export default class {
 		}
 	})
 
-	rbo = assign((w, h, fmt = this.gl.DEPTH24_STENCIL8) => new RBO(this.gl, w, h, this.s2e(fmt)), {
+	rbo = assign((width, height, fmt = this.gl.DEPTH24_STENCIL8) => new RBO(this.gl, width, height, this.s2e(fmt)), {
 	}, {
 		unbind: () => {
 			RBO.unbind(this.gl);

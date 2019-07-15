@@ -51,6 +51,10 @@ export function rotateZ(r) {
 }
 
 export function scale(x, y, z) {
+	if (arguments.length === 1) {
+		y = x;
+		z = x;
+	}
 	const m = id();
 	m[0][0] = x;
 	m[1][1] = y;
