@@ -249,18 +249,18 @@ export default class {
     }), {});
   }
 
-  loadTex = async t => {
+  loadTex = t => {
     const { tex, loadTex } = this;
     if (typeof t === 'string') {
-      return await tex.url(t);
+      return tex.url(t);
     } else if (t.src && typeof t.onload === 'undefined') {
       if (typeof t.src === 'string') {
-        return await tex.url(t.src, t);
+        return tex.url(t.src, t);
       } else {
         return tex.data(t.src, t);
       }
     } else if (typeof t[Symbol.iterator] === 'function') {
-      return await Promise.all([...t].map(loadTex));
+      return Promise.all([...t].map(loadTex));
     } else if (t.width) {
       return tex(t.width, t.height, t);
     } else {
