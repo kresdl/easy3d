@@ -1,0 +1,1 @@
+export const support = !(window.safari !== undefined) && (document.createElement('canvas').getContext('webgl2') instanceof WebGL2RenderingContext);
