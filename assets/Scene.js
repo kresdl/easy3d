@@ -12,6 +12,7 @@ import VS from './VS.js';
 import FS from './FS.js';
 import Mesh from './Mesh.js';
 import Tex from './Tex.js';
+import { concat, scale, translate, id } from 'easy3d';
 
 const { defineProperty, assign, keys, entries, values, create } = Object,
 { isArray } = Array,
@@ -144,7 +145,7 @@ export default class {
   }
 
   execute = dir => {
-    const { prg, tex, mesh, tg, z, uni, blend, clear } = dir,
+    const { prg, tex, mesh, tg, z, uni, blend, clear, area } = dir,
     { ctx, fb, assets, resolvePrograms, resolveTextures, resolveTargets, resolveMeshes, resolveRenderbuffers } = this,
 
     batch = {
@@ -165,7 +166,7 @@ export default class {
       target = fb;
     }
 
-    if (clear) {
+    if (clear) {      
       if (clear !== true) {
         if (isFinite(clear[0])) {
           target.clear(clear);
@@ -191,13 +192,20 @@ export default class {
         }
       }
 
+      if (area) {
+        const { x = 0, y = 0, width = 1, height = 1 } = area;
+        this.uni.vsArea = concat(translate(2 * x - 1 + width, -2 * y + 1 - height, 0), scale(width, height, 1));     
+      } else {
+        this.uni.vsArea = id();
+      }
+
       uni && assign(this.uni, uni);
       target.draw(batch.mesh, batch.prg, blend);
 
       values(batch).forEach(e => {
         e && e.disposeAfterUse && e.dispose();
       });
-    } else {
+    } else if (!clear) {
       target.clear();
     }
   }
@@ -420,5 +428,5 @@ export default class {
 }
 
 function str2enum(gl, str) {
-	return gl[str.replace('-', '_').toUpperCase()];
+	return gl[str.replace(/-/g, '_').toUpperCase()];
 }

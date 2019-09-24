@@ -64,9 +64,9 @@ export function scale(x, y, z) {
 
 export function translate(x, y, z) {
 	const m = id();
-	m[3][0] = x;
-	m[3][1] = y;
-	m[3][2] = z;
+	m[0][3] = x;
+	m[1][3] = y;
+	m[2][3] = z;
 	return m;
 }
 

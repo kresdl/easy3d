@@ -3,18 +3,23 @@ import Mesh from './Mesh.js';
 const { assign } = Object;
 
 export default class extends Mesh {
-	constructor(gl) {
+	constructor(gl, x = 0, y = 0, w = 1, h = 1) {
+		const x1 = 2 * x - 1,
+		y1 = 1 - 2 * y,
+		x2 = x1 + 2 * w,
+		y2 = y1 - 2 * h;
+
 		super(gl, [
-				-1.0,		1.0,		0.0,
+				x1,		y1,		0.0,
 				0.0,		1.0,
 
-				1.0,		1.0,		0.0,
+				x2,		y1,		0.0,
 				1.0,		1.0,
 
-				-1.0,		-1.0,		0.0,
+				x1,		y2,		0.0,
 				0.0,		0.0,
 
-				1.0,		-1.0,		0.0,
+				x2,		y2,		0.0,
 				1.0,		0.0
 		], [
 				1,	0,	3,

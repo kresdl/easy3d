@@ -17,10 +17,15 @@ export default class VS extends Shader {
 in vec3 pos;
 in vec2 tex;
 
+layout(std140) uniform vsArea {
+	mat4 area;
+};
+
 out vec2 f_tex;
 
 void main() {
 	f_tex = tex;
-	gl_Position = vec4(pos, 1.0);
+	vec3 p = vec3(vec4(pos, 1.0) * area).xyz;
+	gl_Position = vec4(p, 1.0);
 }`)
 }

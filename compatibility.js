@@ -1,0 +1,1 @@
+export const isCompatible = (window.safari === undefined) && (typeof WebGL2RenderingContext === 'function') && (document.createElement('canvas').getContext('webgl2') instanceof WebGL2RenderingContext);
