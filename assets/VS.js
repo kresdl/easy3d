@@ -25,7 +25,7 @@ out vec2 f_tex;
 
 void main() {
 	f_tex = tex;
-	vec3 p = vec3(vec4(pos, 1.0) * area).xyz;
+	vec3 p = vec3(area * vec4(pos, 1.0)).xyz;
 	gl_Position = vec4(p, 1.0);
 }`)
 }

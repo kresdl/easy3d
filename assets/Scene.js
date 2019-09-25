@@ -144,9 +144,20 @@ export default class {
     }
   }
 
+  scissor = area => {
+    const { gl } = this;
+    if (area) {
+      const { x, y, width, height } = area;
+      gl.enable(gl.SCISSOR_TEST);
+      gl.scissor(x, y, width, height);
+    } else {
+      gl.disable(gl.SCISSOR_TEST);
+    }
+  }
+
   execute = dir => {
     const { prg, tex, mesh, tg, z, uni, blend, clear, area } = dir,
-    { ctx, fb, assets, resolvePrograms, resolveTextures, resolveTargets, resolveMeshes, resolveRenderbuffers } = this,
+    { ctx, fb, assets, resolvePrograms, resolveTextures, resolveTargets, resolveMeshes, resolveRenderbuffers, scissor } = this,
 
     batch = {
       prg: resolvePrograms(prg),
@@ -166,7 +177,9 @@ export default class {
       target = fb;
     }
 
-    if (clear) {      
+    if (clear) {
+      scissor(area);
+
       if (clear !== true) {
         if (isFinite(clear[0])) {
           target.clear(clear);
@@ -176,6 +189,7 @@ export default class {
       } else {
         target.clear();
       }
+      scissor(false);        
     }
 
     if (tex || prg) {
@@ -193,8 +207,17 @@ export default class {
       }
 
       if (area) {
-        const { x = 0, y = 0, width = 1, height = 1 } = area;
-        this.uni.vsArea = concat(translate(2 * x - 1 + width, -2 * y + 1 - height, 0), scale(width, height, 1));     
+        const { x, y, width, height } = area,
+        [vw, vh] = tg && [batch.tg.w, batch.tg.h] || [gl.drawinBufferWidth, gl.drawinBufferWidth],
+        x2 = x / vw,
+        y2 = y / vh,
+        w = width / vw,
+        h = height / vh;
+
+        this.uni.vsArea = concat(
+          scale(w, h, 1), 
+          translate(2 * x2 - 1 + w, -2 * y2 + 1 - h, 0)
+        );     
       } else {
         this.uni.vsArea = id();
       }
@@ -206,7 +229,9 @@ export default class {
         e && e.disposeAfterUse && e.dispose();
       });
     } else if (!clear) {
+      scissor(area);
       target.clear();
+      scissor(false);
     }
   }
 
@@ -361,8 +386,8 @@ export default class {
 
 	tex = assign((width, height, prop = {}) => {
     const { gl, fb, s2e } = this,
-		{ fmt = gl.RGBA8, srcFmt = gl.RGBA, type = gl.UNSIGNED_BYTE, mips = false, wrap = gl.REPEAT } = s2e(prop);
-		return new Tex(gl, width, height, { fmt, srcFmt, type, mips, wrap }, fb);
+		{ fmt = gl.RGBA8, srcFmt = gl.RGBA, type = gl.UNSIGNED_BYTE, levels = false, wrap = gl.REPEAT } = s2e(prop);
+		return new Tex(gl, width, height, { fmt, srcFmt, type, levels, wrap }, fb);
 	}, {
 		url: (url, prop = {}) => Tex.url(this.gl, url, this.s2e(prop), this.fb),
 		data: (data, prop = {}) => Tex.data(this.gl, data, this.s2e(prop), this.fb)

@@ -31,7 +31,7 @@ export default class Tex {
 
 	constructor(gl, w, h, properties, fb) {
 		const id = gl.createTexture(),
-		{ data, fmt, srcFmt, type, mips, wrap } = properties;
+		{ data, fmt, srcFmt, type, levels, wrap } = properties;
 
 		assign(this, {
 			gl, id, w, h, fmt
@@ -45,12 +45,12 @@ export default class Tex {
 			gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 			gl.texImage2D(t2d, 0, fmt, w, h, 0, srcFmt, type, data);
 
-			if (mips) {
-				this.maxLevel = (isFinite(mips) ? mips : calcLOD(w, h)) - 1;
+			if (levels) {
+				this.maxLevel = (isFinite(levels) ? levels : calcLOD(w, h)) - 1;
 				this.mip();
 			}
-		} else if (mips) {
-			const maxLevel = (isFinite(mips)? mips : calcLOD(w, h)) - 1;
+		} else if (levels) {
+			const maxLevel = (isFinite(levels) ? levels : calcLOD(w, h)) - 1;
 			this.maxLevel = maxLevel;
 			gl.texStorage2D(t2d, maxLevel + 1, fmt, w, h);
 			gl.texParameteri(t2d, gl.TEXTURE_MAX_LEVEL, maxLevel);
@@ -59,7 +59,7 @@ export default class Tex {
 			gl.texStorage2D(t2d, 1, fmt, w, h);
 		}
 
-		if (!mips) {
+		if (!levels) {
 			this.maxLevel = 0;
 			gl.texParameteri(t2d, gl.TEXTURE_MAX_LEVEL, 0);
 			gl.texParameteri(t2d, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
@@ -130,8 +130,8 @@ export default class Tex {
 		return new Promise(function(resolve) {
 			const img = new Image();
 			img.onload = function() {
-	 			const { fmt = gl.RGBA8, srcFmt = gl.RGBA, type = gl.UNSIGNED_BYTE, mips = true, wrap = gl.REPEAT } = properties,
-				tex = new Tex(gl, this.width, this.height, { data: this, fmt, srcFmt, type, mips, wrap }, fb);
+	 			const { fmt = gl.RGBA8, srcFmt = gl.RGBA, type = gl.UNSIGNED_BYTE, levels = true, wrap = gl.REPEAT } = properties,
+				tex = new Tex(gl, this.width, this.height, { data: this, fmt, srcFmt, type, levels, wrap }, fb);
 				resolve(tex);
 			};
 			img.crossOrigin = "Anonymous";
@@ -140,8 +140,8 @@ export default class Tex {
 	}
 
 	static data = (gl, data, properties = {}, fb) => {
-		const { width, height, fmt = gl.RGBA8, srcFmt = gl.RGBA, type = gl.UNSIGNED_BYTE, mips = false, wrap = gl.REPEAT } = properties;
-		return new Tex(gl, data.width || width, data.height || height, { data, fmt, srcFmt, type, mips, wrap }, fb);
+		const { width, height, fmt = gl.RGBA8, srcFmt = gl.RGBA, type = gl.UNSIGNED_BYTE, levels = false, wrap = gl.REPEAT } = properties;
+		return new Tex(gl, data.width || width, data.height || height, { data, fmt, srcFmt, type, levels, wrap }, fb);
 	}
 }
 
