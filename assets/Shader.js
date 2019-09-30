@@ -1,11 +1,15 @@
+import Asset from './Asset';
 const { assign, keys } = Object;
 
-export default class Shader {
+export default class Shader extends Asset {
 	constructor(gl, source, type, constants) {
+		super();
 		const id = gl.createShader(type);
 		assign(this, {
 			gl, id
-		 });
+		});
+
+		Asset.pool.get(gl).add(this);
 
 		if (constants) {
 			keys(constants).forEach(c => {
@@ -41,11 +45,22 @@ export default class Shader {
 	dispose = () => {
 		const { gl, id } = this;
 		gl.deleteShader(id);
+		Asset.pool.get(gl).delete(this);
 	}
 
-	static url = async (ctx, src, type, constants) => {
-		const res = await fetch(src);
-		var source = await res.text();
-		return new Shader(ctx, source, type, constants);
+	static fetchSource = async (url, abortSignal) => {
+		const res = await fetch(url);
+		if (abortSignal && abortSignal.aborted) {
+			throw 'Shader fetch aborted';
+			return;
+		}
+
+		const source = await res.text();
+		if (abortSignal && abortSignal.aborted) {
+			throw 'Shader resolve aborted';
+			return;
+		}
+
+		return source;
 	}
 }

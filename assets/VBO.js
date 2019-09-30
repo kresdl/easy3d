@@ -1,6 +1,6 @@
 import Buffer from './Buffer.js';
 
-export default class extends Buffer {
+export default class VBO extends Buffer {
 	constructor(gl, usage) {
 		super(gl, gl.ARRAY_BUFFER, usage);
 	}

@@ -1,7 +1,9 @@
+import Asset from './Asset';
+
 const { assign } = Object,
 { isFinite } = Number;
 
-export default class Tex {
+export default class Tex extends Asset {
 	static Level = class {
 		constructor(tex, fb, lod) {
 			const { w, h } = tex;
@@ -30,8 +32,11 @@ export default class Tex {
 	}
 
 	constructor(gl, w, h, properties, fb) {
+		super();
 		const id = gl.createTexture(),
 		{ data, fmt, srcFmt, type, levels, wrap } = properties;
+
+		Asset.pool.get(gl).add(this);
 
 		assign(this, {
 			gl, id, w, h, fmt
@@ -107,6 +112,7 @@ export default class Tex {
 		const { gl, id } = this;
 		this.unbind();
 		gl.deleteTexture(id);
+		Asset.pool.get(gl).delete(this);
 	}
 
 	drop = () => {
@@ -126,10 +132,13 @@ export default class Tex {
 		gl.bindTexture(gl.TEXTURE_2D, null);
 	}
 
-	static url = (gl, url, properties = {}, fb) => {
-		return new Promise(function(resolve) {
+	static url = (gl, url, properties = {}, fb, abortSignal) => {
+		return new Promise(function(resolve, reject) {
 			const img = new Image();
 			img.onload = function() {
+				if (abortSignal && abortSignal.aborted) {
+					return reject('Texture load aborted');
+				}
 	 			const { fmt = gl.RGBA8, srcFmt = gl.RGBA, type = gl.UNSIGNED_BYTE, levels = true, wrap = gl.REPEAT } = properties,
 				tex = new Tex(gl, this.width, this.height, { data: this, fmt, srcFmt, type, levels, wrap }, fb);
 				resolve(tex);

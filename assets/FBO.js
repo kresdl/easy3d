@@ -1,17 +1,21 @@
+import Asset from './Asset';
 import setBlendState from '../setBlendState.js';
 
 const { assign } = Object,
 { isFinite, isInteger } = Number,
 { isArray } = Array;
 
-export default class {
+export default class FBO extends Asset{
 	attachments = new Map()
 
 	constructor(gl) {
+		super();
 		assign(this, {
 			gl,
 			id: gl.createFramebuffer()
 		});
+
+		Asset.pool.get(gl).add(this);
 
 		return new Proxy(this, {
 			set: function(fb, p, val) {
@@ -81,6 +85,7 @@ export default class {
 		const { gl, id } = this;
 		FBO.unbind(gl);
 		gl.deleteFramebuffer(id);
+		Asset.pool.get(gl).delete(this);
 	}
 
 	draw = (model, prg, blend = false) => {

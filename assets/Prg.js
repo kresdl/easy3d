@@ -1,16 +1,20 @@
 import VS from './VS.js';
 import FS from './FS.js';
+import Asset from './Asset';
 
 const { assign } = Object;
 
-export default class Prg {
+export default class Prg extends Asset {
 	constructor(gl, vs, fs, map, ub) {
+		super();
 		const { attach, detach, use } = this,
 		id = gl.createProgram();
 		assign(this, {
 			gl, id, map, ub,
 			samplers: fs.samplers
 		});
+
+		Asset.pool.get(gl).add(this);
 
 		attach(vs);
 		attach(fs);
@@ -141,6 +145,7 @@ export default class Prg {
 			}
 		});
 		ub.configure();
+		Asset.pool.get(gl).delete(this);
 	}
 
 	drop = () => {

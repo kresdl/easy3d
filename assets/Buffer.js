@@ -1,15 +1,18 @@
+import Asset from './Asset';
 const { assign } = Object;
 
-export default class {
+export default class Buffer extends Asset {
 	static unbind = (gl, type) => {
 		gl.bindBuffer(type, null);
 	}
 
 	constructor(gl, type, usage) {
+		super();
 		assign(this, {
 			gl,	type, usage,
 			id: gl.createBuffer()
 		});
+		Asset.pool.get(gl).add(this);
 	}
 
 	bind = () => {
@@ -36,5 +39,6 @@ export default class {
 		const { gl, id, type, pool } = this;
 		Buffer.unbind(gl, type);
 		gl.deleteBuffer(id);
+		Asset.pool.get(gl).delete(this);
 	}
 }

@@ -5,9 +5,8 @@ export default class FS extends Shader {
 		super(gl, src, gl.FRAGMENT_SHADER, constants);
 	}
 
-	static url = async (gl, src, constants) => {
-		const res = await fetch(src),
-		source = await res.text();
+	static url = async (gl, src, constants, abortSignal) => {
+		const source = await Shader.fetchSource(src, abortSignal);
 		return new FS(gl, source, constants);
 	}
 }

@@ -1,11 +1,15 @@
+import Asset from './Asset';
 const { assign } = Object;
 
-export default class {
+export default class VAO extends Asset {
 	constructor(gl, indexCount, attributeCount) {
+		super();
 		assign(this, {
 			gl,	indexCount,	attributeCount,
 			id: gl.createVertexArray()
 		});
+
+		Asset.pool.get(gl).add(this);
 	}
 
 	bind = () => {
@@ -21,6 +25,7 @@ export default class {
 		}
 		VAO.unbind(gl);
 		gl.deleteVertexArray(id);
+		Asset.pool.get(gl).delete(this);
 	}
 
 	static unbind = gl => {

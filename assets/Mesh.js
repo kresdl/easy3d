@@ -1,6 +1,7 @@
 import VAO from './VAO.js';
 import VBO from './VBO.js';
 import IBO from './IBO.js';
+import Asset from './Asset';
 import { mul, sub, add, dot, nrm } from '../vec.js';
 import { sub2, cross2 } from '../vec2.js';
 
@@ -81,10 +82,20 @@ export default class Mesh {
 		return this;
 	}
 
-	static url = async (ctx, obj, computeTangentFrame, scale) => {
-		const res = await fetch(obj, { mode: 'cors' }),
-		data = await res.text(),
-		p = [], n = [], p1 = [], n1 = [], t = [],
+	static url = async (gl, obj, computeTangentFrame = true, scale = 1.0, abortSignal) => {
+		const res = await fetch(obj, { mode: 'cors' });
+		if (abortSignal && abortSignal.aborted) {
+			throw 'Mesh fetch aborted';
+			return;
+		}
+
+		const data = await res.text();
+		if (abortSignal && abortSignal.aborted) {
+			throw 'Mesh resolve aborted';
+			return;
+		}
+
+		const p = [], n = [], p1 = [], n1 = [], t = [],
 		t1 = [], f = [], m = {}, g = [];
 		var k = 0, d = [];
 
@@ -200,6 +211,6 @@ export default class Mesh {
 				d = [3];
 			}
 		}
-		return new Mesh(ctx, g, f, d);
+		return new Mesh(gl, g, f, d);
 	}
 }

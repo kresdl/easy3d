@@ -37,7 +37,7 @@ function texArray(t) {
   return t;
 }
 
-export default class {
+export default class Scene {
   map = {}
 
   constructor(canvas) {
@@ -94,7 +94,11 @@ export default class {
     });
   }
 
-  init = async setup => {
+  dispose = () => {
+    this.ctx.dispose();
+  }
+
+  init = async (setup, abortSignal) => {
     const { assets, ext, scheme, statics, uni } = setup,
     { ctx, createTextures, createMeshes, createPrograms, createRenderbuffers, render } = this,
     { tex, mesh, prg, rbo } = assets;
@@ -102,22 +106,22 @@ export default class {
     ext && (isArray(ext) ? ext.forEach(e => { ctx.ext(e); }) : ctx.ext(ext));
 
     this.assets = {
-      tex: assign(tex && await createTextures(tex) || {}, {
-        async put(dyn) {
+      tex: assign(tex && await createTextures(tex, abortSignal) || {}, {
+        async put(dyn, abortSignal) {
           keys(dyn).forEach(e => this[e] && this[e].dispose());
-          assign(this, await createTextures(dyn));
+          assign(this, await createTextures(dyn, abortSignal));
         }
       }),
-      mesh: assign(mesh && await createMeshes(mesh) || {}, {
-        async put(dyn) {
+      mesh: assign(mesh && await createMeshes(mesh, abortSignal) || {}, {
+        async put(dyn, abortSignal) {
           keys(dyn).forEach(e => this[e] && this[e].dispose());
-          assign(this, await createMeshes(dyn));
+          assign(this, await createMeshes(dyn, abortSignal));
         }
       }),
-      prg: assign(prg && await createPrograms(prg) || {}, {
-        async put(dyn) {
+      prg: assign(prg && await createPrograms(prg, abortSignal) || {}, {
+        async put(dyn, abortSignal) {
           keys(dyn).forEach(e => this[e] && this[e].dispose());
-          assign(this, await createPrograms(dyn));
+          assign(this, await createPrograms(dyn, abortSignal));
         }
       }),
       rbo: assign(rbo && await createRenderbuffers(rbo) || {}, {
@@ -235,9 +239,9 @@ export default class {
     }
   }
 
-  createTextures = async desc => {
+  createTextures = async (desc, abortSignal) => {
     const { loadTex } = this,
-    t = await Promise.all(values(desc).map(loadTex));
+    t = await Promise.all(values(desc).map(e => loadTex(e, abortSignal)));
     const x = keys(desc).reduce((x, p, i) => {
       const e = t[i];
       return {
@@ -248,16 +252,16 @@ export default class {
     return x;
   }
 
-  createMeshes = async desc => {
+  createMeshes = async (desc, abortSignal) => {
     const { loadMesh } = this,
-    t = await Promise.all(values(desc).map(loadMesh));
+    t = await Promise.all(values(desc).map(e => loadMesh(e, abortSignal)));
     return keys(desc).reduce((x, p, i) => ({
       ...x,
       [p]: t[i]
     }), {});
   }
 
-  createPrograms = async p => {
+  createPrograms = async (p, abortSignal) => {
     const { loadPrg } = this;
 
     async function asyncReduce(cb, init) {
@@ -270,7 +274,7 @@ export default class {
 
     return await asyncReduce.call(entries(p), async (obj, [key, val]) => ({
       ...obj,
-      [key]: await loadPrg(val)
+      [key]: await loadPrg(val, abortSignal)
     }), {});
   }
 
@@ -282,18 +286,18 @@ export default class {
     }), {});
   }
 
-  loadTex = t => {
+  loadTex = (t, abortSignal) => {
     const { tex, loadTex } = this;
     if (typeof t === 'string') {
-      return tex.url(t);
+      return tex.url(t, undefined, abortSignal);
     } else if (t.src && typeof t.onload === 'undefined') {
       if (typeof t.src === 'string') {
-        return tex.url(t.src, t);
+        return tex.url(t.src, t, abortSignal);
       } else {
         return tex.data(t.src, t);
       }
     } else if (typeof t[Symbol.iterator] === 'function') {
-      return Promise.all([...t].map(loadTex));
+      return Promise.all([...t].map(e => loadTex(e, abortSignal)));
     } else if (t.width) {
       return tex(t.width, t.height, t);
     } else {
@@ -301,20 +305,20 @@ export default class {
     }
   }
 
-  loadPrg = async p => {
+  loadPrg = async (p, abortSignal) => {
     const { vs, fs, prg, quadVS } = this;
     let v, f;
     if (p.vs) {
       if (typeof p.vs === 'string') {
-        v = await vs.url(p.vs);
+        v = await vs.url(p.vs, undefined, abortSignal);
       } else {
-        v = await vs.url(p.vs.src, p.vs.var);
+        v = await vs.url(p.vs.src, p.vs.var, abortSignal);
       }
     }
     if (typeof p.fs === 'string') {
-      f = await fs.url(p.fs);
+      f = await fs.url(p.fs, undefined, abortSignal);
     } else {
-      f = await fs.url(p.fs.src, p.fs.var);
+      f = await fs.url(p.fs.src, p.fs.var, abortSignal);
     }
     const pr = prg(v || quadVS, f);
     v && v.dispose();
@@ -322,9 +326,9 @@ export default class {
     return pr;
   }
 
-  loadMesh = m => {
+  loadMesh = (m, abortSignal) => {
     const { mesh } = this;
-    return typeof m === 'string' ? mesh.url(m) : mesh.url(m.src, m.computeTangentFrame, m.scale);
+    return typeof m === 'string' ? mesh.url(m, undefined, undefined, abortSignal) : mesh.url(m.src, m.computeTangentFrame, m.scale, abortSignal);
   }
 
   resolveTargets = t => {
@@ -371,11 +375,11 @@ export default class {
   }
 
 	vs = assign((src, constants) => new VS(this.gl, src, constants), {
-		url: (src, constants) => VS.url(this.gl, src, constants),
+		url: (src, constants, abortSignal) => VS.url(this.gl, src, constants, abortSignal),
 	})
 
 	fs = assign((src, constants) => new FS(this.gl, src, constants), {
-		url: (src, constants) => FS.url(this.gl, src, constants)
+		url: (src, constants, abortSignal) => FS.url(this.gl, src, constants, abortSignal)
 	})
 
 	prg = assign((v, f) => new Prg(this.gl, v, f, this.map, this.ub), {
@@ -389,7 +393,7 @@ export default class {
 		{ fmt = gl.RGBA8, srcFmt = gl.RGBA, type = gl.UNSIGNED_BYTE, levels = false, wrap = gl.REPEAT } = s2e(prop);
 		return new Tex(gl, width, height, { fmt, srcFmt, type, levels, wrap }, fb);
 	}, {
-		url: (url, prop = {}) => Tex.url(this.gl, url, this.s2e(prop), this.fb),
+		url: (url, prop = {}, abortSignal) => Tex.url(this.gl, url, this.s2e(prop), this.fb, abortSignal),
 		data: (data, prop = {}) => Tex.data(this.gl, data, this.s2e(prop), this.fb)
 	})
 
@@ -434,7 +438,7 @@ export default class {
   })
 
 	mesh = assign((vert, indices, layout) => new Mesh(this.gl, vert, indices, layout), {
-		url: (obj, computeTangentFrame = true, scale = 1.0) => Mesh.url(this.gl, obj, computeTangentFrame, scale),
+		url: (obj, computeTangentFrame, scale, abortSignal) => Mesh.url(this.gl, obj, computeTangentFrame, scale, abortSignal),
 	})
 
 	s2e = x => {

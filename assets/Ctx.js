@@ -1,16 +1,39 @@
+import Asset from './Asset';
 import setBlendState from '../setBlendState.js';
 
 const { assign } = Object,
 { isFinite } = Number;
 
-export default class {
+export default class Ctx extends Asset {
 	constructor(canvas) {
+		super();
 		let gl = canvas.getContext('webgl2');
 		if (!gl) throw 'Unable to create WebGL2 context';
+
+		Asset.pool.set(gl, new Set());
 		this.gl = gl;
 
 		gl.depthFunc(gl.LEQUAL);
 		gl.frontFace(gl.CCW);
+	}
+
+	dispose = () => {
+    const { gl } = this,
+    numTextureUnits = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
+
+    for (let unit = 0; unit < numTextureUnits; unit++) {
+      gl.activeTexture(gl.TEXTURE0 + unit);
+      gl.bindTexture(gl.TEXTURE_2D, null);
+    }
+
+    const { pool } = Asset,
+    assets = [...pool.get(gl).keys()].reverse();
+
+    assets.forEach(asset => {
+      asset.dispose();
+    });
+
+    pool.delete(gl);
 	}
 
 	draw = (model, prg, blend = false) => {

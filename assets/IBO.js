@@ -1,6 +1,6 @@
 import Buffer from './Buffer.js';
 
-export default class extends Buffer {
+export default class IBO extends Buffer {
 	static unbind = gl => {
 		Buffer.unbind(gl, gl.ELEMENT_ARRAY_BUFFER);
 	}
