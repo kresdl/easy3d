@@ -48,15 +48,10 @@ export default class Shader extends Asset {
 		Asset.pool.get(gl).delete(this);
 	}
 
-	static fetchSource = async (url, abortSignal) => {
-		const res = await fetch(url);
-		if (abortSignal && abortSignal.aborted) {
-			throw 'Shader fetch aborted';
-			return;
-		}
-
-		const source = await res.text();
-		if (abortSignal && abortSignal.aborted) {
+	static fetchSource = async (url, signal) => {
+		const res = await fetch(url, { signal }),
+		source = await res.text();
+		if (signal && signal.aborted) {
 			throw 'Shader resolve aborted';
 			return;
 		}

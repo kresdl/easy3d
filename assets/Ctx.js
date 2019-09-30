@@ -28,6 +28,7 @@ export default class Ctx extends Asset {
 
     const { pool } = Asset,
     assets = [...pool.get(gl).keys()].reverse();
+    console.log(assets);
 
     assets.forEach(asset => {
       asset.dispose();

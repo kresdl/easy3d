@@ -82,15 +82,14 @@ export default class Mesh {
 		return this;
 	}
 
-	static url = async (gl, obj, computeTangentFrame = true, scale = 1.0, abortSignal) => {
-		const res = await fetch(obj, { mode: 'cors' });
-		if (abortSignal && abortSignal.aborted) {
-			throw 'Mesh fetch aborted';
-			return;
-		}
+	static url = async (gl, obj, computeTangentFrame = true, scale = 1.0, signal) => {
+		const res = await fetch(obj, { 
+			mode: 'cors',
+			signal
+	 	}),
 
-		const data = await res.text();
-		if (abortSignal && abortSignal.aborted) {
+		data = await res.text();
+		if (signal && signal.aborted) {
 			throw 'Mesh resolve aborted';
 			return;
 		}

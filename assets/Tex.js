@@ -132,11 +132,11 @@ export default class Tex extends Asset {
 		gl.bindTexture(gl.TEXTURE_2D, null);
 	}
 
-	static url = (gl, url, properties = {}, fb, abortSignal) => {
+	static url = (gl, url, properties = {}, fb, signal) => {
 		return new Promise(function(resolve, reject) {
 			const img = new Image();
 			img.onload = function() {
-				if (abortSignal && abortSignal.aborted) {
+				if (signal && signal.aborted) {
 					return reject('Texture load aborted');
 				}
 	 			const { fmt = gl.RGBA8, srcFmt = gl.RGBA, type = gl.UNSIGNED_BYTE, levels = true, wrap = gl.REPEAT } = properties,

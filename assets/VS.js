@@ -5,8 +5,8 @@ export default class VS extends Shader {
 		super(gl, src, gl.VERTEX_SHADER, constants);
 	}
 
-	static url = async (gl, src, constants, abortSignal) => {
-		const source = await Shader.fetchSource(src, abortSignal);
+	static url = async (gl, src, constants, signal) => {
+		const source = await Shader.fetchSource(src, signal);
 		return new VS(gl, source, constants);
 	}
 
