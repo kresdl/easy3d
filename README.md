@@ -30,7 +30,7 @@ async function init() {
   const vp = new Camera([0, 0, 165], [0, 0, 0], 1, 25, 1000, 1).matrix,
 
   setup = {
-    em: 'canvas',
+    em: document.getElementById('canvas'),
     width: 1024,
     height: 1024,
     assets: {
@@ -73,15 +73,13 @@ Abstraction class for asset management, uniforms handling and render procedure l
 
 **`uni`**: [Shader uniforms](#shader-uniform-tree). Write only.
 
-**`statics`**: User data.
-
 ##### Methods:
 
 **`render(arg)`**
 
-Runs [scheme](#scheme) or [directive](#directive).
+Runs [directive(s)](#directive).
 
-`arg`: `Function` or `Object`. If `Function`, it is considered a [scheme](#scheme). If `Object` and a main scheme is assigned, that scheme is executed and passed this `Object`. If no main scheme is assigned, the `Object` is considered a [directive](#directive).
+`arg`: `Object` or `Iterable`
 
 ## Assets
 
@@ -135,7 +133,7 @@ Marks asset as obsolete after next [directive](#directive) invokation and that i
 ### Setup
 `Object` responsible for scene initialization.
 
-* `em`: `HTMLCanvasElement` id.
+* `em`: `HTMLCanvasElement`
 
 * `width`: Width in pixels.
 
@@ -143,34 +141,64 @@ Marks asset as obsolete after next [directive](#directive) invokation and that i
 
 * `assets`: [Asset descriptions](#asset-descriptions).
 
-* `scheme`: Optional main [scheme](#scheme).
-
 * `ext`: `String` or `Array`. Optional [extension(s)](#extensions) to use.
 
 * `uni`: Optional [shader uniform](#shader-uniform-tree) initialization.
-
-* `statics`: Optional user data.
 
 ### Asset descriptions
 
 `Object`. Descriptions of [assets](#assets) which will be resolved with actual assets to be associated with the scene, grouped by type. The groups are:
 
-* `vs`: `Object`. Vertex shader descriptions by name.  A description is a URL `String` or an `Array` consisting of a URL and an [alias mapper](#alias-mapper). The name can be referenced from `prg` group which allows recycling of shaders shared among different programs.
+* `vs`: `Object`. Vertex [shader descriptions](#shader-description) by name. The name can be referenced from `prg` group.
 
-* `fs`: Fragment shaders. Similar to `vs`.
+* `fs`: `Object`. Fragment [shader descriptions](#shader-description) by name. The name can be referenced from `prg` group.
 
-* `prg`: `Object`. [Program](#program) descriptions by name. A description is an `Array` or a `String`. Accepted values are the same as for `vs` and `fs` respectively, as well as references to `keys` of these groups. If the vertex shader component is omitted, the program will be created with a [screen quad vertex shader](#screen-quad-vertex-shader).
+* `prg`: `Object`. [Program descriptions](#program-description) by name.
 
-* `tex`: `Object`. By name, either a [texture](#tex) description or a `Function` providing an `Iterable` of descriptions, which will result in an `Array` of textures.
-A description can be a URL `String`, [image data](#image-data) or an `Array`. An empty texture is defined by width and height respectively. The information can be followed by [options](#texture-options).
+* `tex`: `Object`. By name, either a URL `String`, a [texture description](#texture-description) or an `Iterable` of these.
 
-* `mesh`: `Object`. [Mesh](#mesh) descriptions by name. A description is a `String` or an `Array` consisting of a URL to an `.obj`-file, optionally followed by a `Boolean` dictating generation of tangent and bitangent for each vertex, given a normal exists. This is done by default.
+* `mesh`: `Object`. Meshes. By name, either a URL `String` or a [Mesh description](#mesh-description).
+  
+* `rbo`: `Object`. [Render buffer](#render-buffer) descriptions by name.
 
-* `rbo`: `Object`. [Render buffer](#render-buffer) descriptions by name. A description is an `Array` of width, height and [format](#renderbuffer-internal-format). Default format is `gl.DEPTH24_STENCIL8`.
+### Shader description
 
-### Level
+`Object` describing a vertex/frament shader.
+* `src`: URL `String` to shader source.
+* `var`: [Alias mapper](#alias-mapper)
 
-The render target at a certain detail level (lod) of a [texture](#texture).
+### Program description
+
+`Object` describing a program.
+
+* `vs`: Either a `String` or a [Shader description](#shader-description). A `String` is either a URL to shader source or the name of a `key` in `vs` in [Asset descriptions](#asset-descriptions). If omitted, the program will be created with a [screen quad vertex shader](#screen-quad-vertex-shader).
+
+* `fs`: Either a `String` or a [Shader description](#shader-description). A `String` is either a URL to shader source or the name of a `key` in `fs` in [Asset descriptions](#asset-descriptions).
+
+### Texture description
+
+`Object` describing a texture.
+
+* `src`: Optional URL `String` or [image data]("image-data).
+* `width`: If width is unavailable on source. Texture width in pixels
+* `height`: If height is unavailable on source. Texture height in pixels
+* `fmt`: [Internal format](#texture-internal-format). Default `gl.RGBA8`.
+* `srcFmt`: [Source format](#texture-source-format). Default is `gl.RGBA`.
+* `type`: [Source data type](#texture-data-type). Default is `gl.UNSIGNED_BYTE`.
+* `levels`: A `Boolean` dictates the generation/storage reservation of/for mip levels. A `Number` specifies the amount of levels. Default is `false` for empty textues and `true` for non-empty.
+* `wrap`: [Wrapping function](#texture-wrapping-function). Default is `gl.REPEAT`.
+
+### Mesh description
+
+`Object` describing a mesh.
+* `src`: A URL `String` to `.obj`-file.
+* `computeTangentFrame`: `Boolean` dictating generation of tangent and bitangent for each vertex, given a normal exists. This is done by default.
+
+### Render buffer description
+
+* `width`: width in pixels
+* `height`: height in pixels.
+* `fmt`: [Internal format](#renderbuffer-internal-format). Default format is `gl.DEPTH24_STENCIL8`.
 
 ### Alias mapper
 
@@ -203,16 +231,9 @@ const float x = $x.f;
 * `block`: Block as defined in shader(s). Accepted value is either a uniform or in the case of a single uniform containing block, the uniform value directly.
 * `uniform`: Uniform as defined in shader block. Accepted value is either a `Number`, a `Number` `Array` or an `Array` of `Number` arrays ([matrix](#matrix)).
 
-### Texture options
-`Object` defining texture.
+### Level
 
-* `w`: If `width` is unavailable on source. Texture width in pixels
-* `h`: If `height` is unavailable on source. Texture height in pixels
-* `fmt`: [Internal format](#texture-internal-format). Default `gl.RGBA8`.
-* `srcFmt`: [Source format](#texture-source-format). Default is `gl.RGBA`.
-* `type`: [Source data type](#texture-data-type). Default is `gl.UNSIGNED_BYTE`.
-* `mips`: A `Boolean` dictates the generation/storage reservation of/for mip levels. A `Number` specifies the amount of levels. Default is `false` for empty textues and `true` for non-empty.
-* `wrap`: [Wrapping function](#texture-wrapping-function). Default is `gl.REPEAT`.
+The render target at a certain detail level (lod) of a [texture](#texture).
 
 ### Color
 
@@ -255,39 +276,6 @@ If the program contains a single sampler, the texture can be assigned directly.
 
 If neither `tex` or `prg` is defined the target(s) will be cleared.
 
-### Scheme
-
-A `Function` that returns an `Iterable` of [directives](#directive). By defining a generator function, intermediate operations can be performed between render passes. The [scene](#scene) can be accessed with the `this` keyword.
-
-Example:
-```javascript
-function* scheme(mvp) {
-  const { tex } = this.assets;
-
-  yield {
-    prg: 'vcol',
-    mesh: 'monkey',
-    uni: { mvp },
-    clear: true,
-    tg: ['col', 'halo'],
-    z: 'z'
-  };
-
-  yield {
-    prg: 'blurx',
-    tex: tex.halo.mip(),
-    tg: 'bx'
-  };
-
-  yield {
-    prg: 'blury',
-    tex: {
-      a: 'bx',
-      b: 'col'
-    }
-  };
-}
-```
 ## Utility assets
 
 ### Screen quad
