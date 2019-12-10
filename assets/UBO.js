@@ -18,7 +18,7 @@ export default class UBO extends Buffer {
 		super(gl, gl.UNIFORM_BUFFER, usage);
 		assign(this, {
 			gl,	map,
-			alignment: gl.getParameter(gl.UNIFORM_BUFFER_OFFSET_ALIGNMENT),
+			alignment: gl.getParameter(gl.UNIFORM_BUFFER_OFFSET_ALIGNMENT)
 		});
 	}
 

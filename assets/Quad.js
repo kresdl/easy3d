@@ -1,7 +1,5 @@
 import Mesh from './Mesh.js';
 
-const { assign } = Object;
-
 export default class Quad extends Mesh {
 	constructor(gl, x = 0, y = 0, w = 1, h = 1) {
 		const x1 = 2 * x - 1,

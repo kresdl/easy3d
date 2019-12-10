@@ -6,42 +6,40 @@
 
 A 3D framework written by [kresdl](https://www.kresdl.com)
 
-#### Concept
-
-What I'm trying to accomplish with easy3d 3.0 is to provide a more declarative way of creating 3D graphics.
-
 #### Installation
 
-`npm install easy3d`
-
-#### Usage
-
-Bundle your app with a module bundler, e.g webpack.
+`npm i easy3d`
 
 #### Example
 
 A simple app might look like this:
 
 ```javascript
-import { Camera, createScene, rotate, concat } from 'easy3d';
+import { Camera, Scene, rotate, concat } from 'easy3d';
 init();
 
 async function init() {
   const vp = new Camera([0, 0, 165], [0, 0, 0], 1, 25, 1000, 1).matrix,
 
-  setup = {
-    em: document.getElementById('canvas'),
-    width: 1024,
-    height: 1024,
-    assets: {
-      prg: { fx: ['/data/monkey_v.glsl', '/data/monkey_f.glsl'] },
-      mesh: { monkey: '/data/monkey.obj' },
-      tex: { fur: '/data/monkey.png' }
+  canvas = document.getElementById('canvas'),
+  scene = new Scene(canvas),
+  assets = {
+    prg: {
+      fx: {
+        vs: '/data/monkey_v.glsl', 
+        fs: '/data/monkey_f.glsl'
+      }
+    },
+    mesh: { 
+      monkey: '/data/monkey.obj'
+    },
+    tex: {
+      fur: '/data/monkey.png'
     }
-  },
+  };
 
-  { render } = await createScene(setup);
-  var mx = 0, my = 0;
+  await scene.add(assets);
+  let mx = 0, my = 0;
   main();
 
   function main() {
@@ -60,20 +58,36 @@ async function init() {
 }
 ```
 
-Feel free to play around with the sample app contained in this package. It sheds some light on the concepts covered here.
+Examine the sample app contained in this package. It sheds some light on the concepts covered here.
 
 ## Scene
-Abstraction class for asset management, uniforms handling and render procedure logic. It is provided by the utility method [createScene](#utility-methods).
+Abstraction class for asset management, uniforms handling and render procedure logic.
+
+##### Constructor:
+
+####`Scene(canvas[, extensions])`
+
+**`canvas`**: `HTMLCanvasElement`
+
+**`extensions`**: `String` or `Array` defining [extension(s)](#extensions).
 
 ##### Properties:
 
 **`canvas`**: `HTMLCanvasElement`
 
-**`assets`**: `Object` containing the [assets](#assets). Has the the same structure as [asset descriptions](#asset-descriptions) with the exception that shaders are absent.
+**`assets`**: [Assets](#assets)
 
-**`uni`**: [Shader uniforms](#shader-uniform-tree). Write only.
+**`uni`**: [Shader uniforms](#shader-uniform-tree).
 
 ##### Methods:
+
+**`add(assets)`**
+
+Adds assets. Returns a promise that is resolved with the [assets](#assets).
+
+`assets`: [Asset descriptions](#asset-descriptions).
+
+Throws if creation failed due to scene disposal.
 
 **`render(arg)`**
 
@@ -81,9 +95,16 @@ Runs [directive(s)](#directive).
 
 `arg`: `Object` or `Iterable`
 
-## Assets
+### Assets
 
-### Program
+`Object` containing the assets. Has the the same structure as [asset descriptions](#asset-descriptions). 
+
+* `tex`: [Textures](#texture)
+* `prg`: [Programs](#programs)
+* `tex`: [Meshes](#mesh)
+* `rbo`: [Renderbuffers](#renderbuffer)
+
+#### Program
 
 ##### Methods:
 
@@ -91,7 +112,7 @@ Runs [directive(s)](#directive).
 
 Marks asset as obsolete after next [directive](#directive) invokation and that it should be disposed. Returns this asset.
 
-### Mesh
+#### Mesh
 ##### Properties:
 
 **`cull`**: `Boolean` dictating face culling. Default is `true`.
@@ -107,7 +128,7 @@ Marks asset as obsolete after next [directive](#directive) invokation and that i
 **`drop()`**
 
 Marks asset as obsolete after next [directive](#directive) invokation and that it should be disposed. Returns this asset.
-### Texture
+#### Texture
 ##### Properties:
 
 **`[lod]`**: [Level](#level). `lod` is a positive integer where 0 represents the original image. Read-only.
@@ -121,61 +142,34 @@ Marks asset as obsolete after next [directive](#directive) invokation and that i
 
 Generates mip levels and returns this texture.
 
-### Render buffer
+#### Renderbuffer
 ##### Methods:
 
 **`drop()`**
 
 Marks asset as obsolete after next [directive](#directive) invokation and that it should be disposed. Returns this asset.
 
-## Items
-
-### Setup
-`Object` responsible for scene initialization.
-
-* `em`: `HTMLCanvasElement`
-
-* `width`: Width in pixels.
-
-* `height`: Height in pixels.
-
-* `assets`: [Asset descriptions](#asset-descriptions).
-
-* `ext`: `String` or `Array`. Optional [extension(s)](#extensions) to use.
-
-* `uni`: Optional [shader uniform](#shader-uniform-tree) initialization.
-
 ### Asset descriptions
 
 `Object`. Descriptions of [assets](#assets) which will be resolved with actual assets to be associated with the scene, grouped by type. The groups are:
 
-* `vs`: `Object`. Vertex [shader descriptions](#shader-description) by name. The name can be referenced from `prg` group.
-
-* `fs`: `Object`. Fragment [shader descriptions](#shader-description) by name. The name can be referenced from `prg` group.
-
 * `prg`: `Object`. [Program descriptions](#program-description) by name.
 
-* `tex`: `Object`. By name, either a URL `String`, a [texture description](#texture-description) or an `Iterable` of these.
+* `tex`: `Object`. Textures. By name, either a URL `String`, a [texture description](#texture-description) or an `Iterable` of these.
 
 * `mesh`: `Object`. Meshes. By name, either a URL `String` or a [Mesh description](#mesh-description).
   
-* `rbo`: `Object`. [Render buffer](#render-buffer) descriptions by name.
+* `rbo`: `Object`. [Renderbuffer descriptions](#renderbuffer-description) by name.
 
-### Shader description
-
-`Object` describing a vertex/frament shader.
-* `src`: URL `String` to shader source.
-* `var`: [Alias mapper](#alias-mapper)
-
-### Program description
+#### Program description
 
 `Object` describing a program.
 
-* `vs`: Either a `String` or a [Shader description](#shader-description). A `String` is either a URL to shader source or the name of a `key` in `vs` in [Asset descriptions](#asset-descriptions). If omitted, the program will be created with a [screen quad vertex shader](#screen-quad-vertex-shader).
+* `vs`: Either a URL `String` to shader source or a [Shader description](#shader-description). If omitted, the program will be created with a [screen quad vertex shader](#screen-quad-vertex-shader).
 
-* `fs`: Either a `String` or a [Shader description](#shader-description). A `String` is either a URL to shader source or the name of a `key` in `fs` in [Asset descriptions](#asset-descriptions).
+* `fs`: Either a URL `String` to shader source or a [Shader description](#shader-description).
 
-### Texture description
+#### Texture description
 
 `Object` describing a texture.
 
@@ -188,13 +182,13 @@ Marks asset as obsolete after next [directive](#directive) invokation and that i
 * `levels`: A `Boolean` dictates the generation/storage reservation of/for mip levels. A `Number` specifies the amount of levels. Default is `false` for empty textues and `true` for non-empty.
 * `wrap`: [Wrapping function](#texture-wrapping-function). Default is `gl.REPEAT`.
 
-### Mesh description
+#### Mesh description
 
 `Object` describing a mesh.
 * `src`: A URL `String` to `.obj`-file.
 * `computeTangentFrame`: `Boolean` dictating generation of tangent and bitangent for each vertex, given a normal exists. This is done by default.
 
-### Render buffer description
+#### Renderbuffer description
 
 * `width`: width in pixels
 * `height`: height in pixels.
@@ -212,7 +206,10 @@ Example:
 //assets object
 ...
     fs: {
-      blurx: ['/texy/data/shader.glsl', { x: 10 }]
+      blurx: {
+        src: '/texy/data/shader.glsl', 
+        vars: { x: 10 }
+      }
     },
 ...
 
@@ -261,7 +258,7 @@ A 4x4 `Number` `Array` construction of format `[column][row]`.
 
 * `uni`: [Shader uniform tree](#shader-uniform-tree)
 
-* `clear`: Clear before draw. A `Boolean` dictates color- and depth clear.  `true` sets clear [color](#color) to `[0, 0, 0, 1]` if target is the back buffer, or `[0, 0, 0, 0]` if target is a [level](#level). Furthermore, it sets clear depth to `1.0`. `false` disables clear. An `Array` specifies clear values and consists of a clear color, or in case of multiple targets, an `Array` of clear colors, followed by a clear depth. Default is `false`.
+* `clear`: Clear before draw. A `Boolean` dictates color- and depth clear.  `false` disables clear and is default. `true` sets clear [color](#color) to `[0, 0, 0, 1]` if target is the back buffer, or `[0, 0, 0, 0]` otherwise. An `Array` is either a color, or an `Array` of colors in case of multiple targets. An `Object` defines `color` and `depth` values. Default clear depth is 1.0.
 
 * `blend`: `Boolean` or [blend mode](#blend-mode). `true` enables `'over'` blend mode and `false` disables blending. Default is `false`.
 
@@ -272,7 +269,9 @@ If the program contains a single sampler, the texture can be assigned directly.
 
 * `tg`: Render target(s) if other than the back buffer. Either a [level](#level), a [texture](#tex) or a `String`, alternatively an `Array` of any of these. References are considered texture references and textures will be targeted at level 0.
 
-* `z`: Depth buffer if other than the back buffer's. Either a [render buffer](#render-buffer) or a `String`.
+* `z`: Depth buffer if other than the back buffer's. Either a [renderbuffer](#renderbuffer) or a `String`.
+
+* `area`: `Object`. Clipping region defined by `x`, `y`, `width` and `height` in pixels.
 
 If neither `tex` or `prg` is defined the target(s) will be cleared.
 
@@ -504,16 +503,6 @@ Returns the inverse matrix.
 Returns the transpose matrix.
 
 `m`: Matrix to transpose.
-
-## Utility methods
-
-**`createScene(setup)`**
-
-Returns a promise that is resolved with the [scene](#scene).
-
-`setup`: [Setup](#setup).
-
-Throws `Error` if WebGL failed at creation.
 
 ## GLenums
 GLenum parameters in context Methods: can be substituted by a `String` where `_` is replaced by `-` and all letters are decapitalized.

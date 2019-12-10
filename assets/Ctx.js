@@ -1,9 +1,6 @@
 import Asset from './Asset';
 import setBlendState from '../setBlendState.js';
 
-const { assign } = Object,
-{ isFinite } = Number;
-
 export default class Ctx extends Asset {
 	constructor(canvas) {
 		super();
@@ -28,7 +25,6 @@ export default class Ctx extends Asset {
 
     const { pool } = Asset,
     assets = [...pool.get(gl).keys()].reverse();
-    console.log(assets);
 
     assets.forEach(asset => {
       asset.dispose();

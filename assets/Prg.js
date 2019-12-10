@@ -1,4 +1,3 @@
-import VS from './VS.js';
 import FS from './FS.js';
 import Asset from './Asset';
 
@@ -134,7 +133,7 @@ export default class Prg extends Asset {
 	}
 
 	dispose = () => {
-		const { gl, id, vs, fs, detach, map, ub } = this;
+		const { gl, id, map, ub } = this;
 		Prg.unuse(gl);
 		gl.deleteProgram(id);
 		Object.keys(this.blocks).forEach(name => {

@@ -10,7 +10,7 @@ export default class Tex extends Asset {
 			assign(this, {
 				lod, tex, fb,
 				w: w >> lod,
-				h: h >> lod,
+				h: h >> lod
 			})
 		}
 
@@ -139,7 +139,7 @@ export default class Tex extends Asset {
 				if (signal && signal.aborted) {
 					return reject('Texture load aborted');
 				}
-	 			const { fmt = gl.RGBA8, srcFmt = gl.RGBA, type = gl.UNSIGNED_BYTE, levels = true, wrap = gl.REPEAT } = properties,
+				const { fmt = gl.RGBA8, srcFmt = gl.RGBA, type = gl.UNSIGNED_BYTE, levels = true, wrap = gl.REPEAT } = properties,
 				tex = new Tex(gl, this.width, this.height, { data: this, fmt, srcFmt, type, levels, wrap }, fb);
 				resolve(tex);
 			};

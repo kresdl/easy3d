@@ -1,7 +1,6 @@
 import VAO from './VAO.js';
 import VBO from './VBO.js';
 import IBO from './IBO.js';
-import Asset from './Asset';
 import { mul, sub, add, dot, nrm } from '../vec.js';
 import { sub2, cross2 } from '../vec2.js';
 
@@ -86,12 +85,11 @@ export default class Mesh {
 		const res = await fetch(obj, { 
 			mode: 'cors',
 			signal
-	 	}),
+		}),
 
 		data = await res.text();
 		if (signal && signal.aborted) {
 			throw 'Mesh resolve aborted';
-			return;
 		}
 
 		const p = [], n = [], p1 = [], n1 = [], t = [],
@@ -101,15 +99,15 @@ export default class Mesh {
 		const s = data.split(/\n/);
 		for (let q of s) {
 			let r = q.split(" ");
-			if (r[0] == "v") {
+			if (r[0] === "v") {
 				p.push([ parseFloat(r[1]), parseFloat(r[2]), parseFloat(r[3]) ]);
-			} else if (r[0] == "vt") {
+			} else if (r[0] === "vt") {
 				r = q.split(" ");
 				t.push([ parseFloat(r[1]), parseFloat(r[2]) ]);
-			} else if (r[0] == "vn") {
+			} else if (r[0] === "vn") {
 				r = q.split(" ");
 				n.push([ parseFloat(r[1]), parseFloat(r[2]), parseFloat(r[3]) ]);
-			} else if (r[0] == "f") {
+			} else if (r[0] === "f") {
 				for (let i = 0; i < 3; i++) {
 					q = r[i + 1];
 					if (!m.q) {

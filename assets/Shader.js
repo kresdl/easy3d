@@ -25,7 +25,7 @@ export default class Shader extends Asset {
 		if (type === gl.VERTEX_SHADER) {
 			const a = source.match(/in\s.*;/ig);
 			this.input = a && a.map(e =>
-				e.match(/in\s+\w+\s+(\w+)/i)[1])
+				e.match(/in\s+\w+\s+(\w+)/i)[1]);
 		} else if (type === gl.FRAGMENT_SHADER) {
 			const a = source.match(/uniform sampler.*;/ig);
 			this.samplers = a && a.map(e =>
@@ -53,7 +53,6 @@ export default class Shader extends Asset {
 		source = await res.text();
 		if (signal && signal.aborted) {
 			throw 'Shader resolve aborted';
-			return;
 		}
 
 		return source;
