@@ -2,7 +2,7 @@ import Buffer from './Buffer.js';
 
 const { isArray } = Array,
 { isFinite } = Number,
-{ keys, assign } = Object;
+{ assign } = Object;
 
 if (!Array.prototype.flatMap) {
 	Array.prototype.flatMap = function(cb) {

@@ -58,14 +58,12 @@ async function init() {
 }
 ```
 
-Examine the sample app contained in this package. It sheds some light on the concepts covered here.
-
 ## Scene
 Abstraction class for asset management, uniforms handling and render procedure logic.
 
 ##### Constructor:
 
-####`Scene(canvas[, extensions])`
+#### `Scene(canvas[, extensions])`
 
 **`canvas`**: `HTMLCanvasElement`
 
@@ -165,9 +163,9 @@ Marks asset as obsolete after next [directive](#directive) invokation and that i
 
 `Object` describing a program.
 
-* `vs`: Either a URL `String` to shader source or a [Shader description](#shader-description). If omitted, the program will be created with a [screen quad vertex shader](#screen-quad-vertex-shader).
+* `vs`: Either a URL `String` to vertex shader source or a [Shader description](#shader-description). If omitted, the program will be created with a [screen quad vertex shader](#screen-quad-vertex-shader).
 
-* `fs`: Either a URL `String` to shader source or a [Shader description](#shader-description).
+* `fs`: Either a URL `String` to fragment shader source or a [Shader description](#shader-description).
 
 #### Texture description
 
@@ -193,6 +191,12 @@ Marks asset as obsolete after next [directive](#directive) invokation and that i
 * `width`: width in pixels
 * `height`: height in pixels.
 * `fmt`: [Internal format](#renderbuffer-internal-format). Default format is `gl.DEPTH24_STENCIL8`.
+
+#### Shader description
+
+`Object` describing a shader.
+* `src`: A URL `String` to `.glsl`-file.
+* `var`: [Alias mapper](#alias-mapper)
 
 ### Alias mapper
 
@@ -224,9 +228,20 @@ const float x = $x.f;
 ```
 
 ### Shader uniform tree
-`Object` for assigning shader `uniforms`. Contains all uniforms present in compiled shaders, grouped by `block`.
-* `block`: Block as defined in shader(s). Accepted value is either a uniform or in the case of a single uniform containing block, the uniform value directly.
-* `uniform`: Uniform as defined in shader block. Accepted value is either a `Number`, a `Number` `Array` or an `Array` of `Number` arrays ([matrix](#matrix)).
+
+`Object` for assigning shader `uniform`s. An assignment can either be a `Number`, a `Number` `Array` or an `Array` of `Number` arrays ([matrix](#matrix)).
+
+Example:
+ 
+```javascript
+scene.uni = {
+  uniformBlock: {
+    uniform: 10,
+    anotherUnifom: [1, 10, 20]
+  }
+}
+```
+
 
 ### Level
 
@@ -248,7 +263,7 @@ A 4x4 `Number` `Array` construction of format `[column][row]`.
 
 `String`. Can be `'over'`, `'atop'`, `'in'`, `'out'`, `'dest over'`, `'dest atop'`, `'dest in'` or `'dest out'`.
 
-###  Directive
+### Directive
 
 `Object` describing a render pass. [Assets](#assets) can be referenced with a `String` corresponding to the name defined in [asset descriptions](#asset-descriptions).
 
