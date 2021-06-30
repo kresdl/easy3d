@@ -4,8 +4,6 @@
 ![npm](https://img.shields.io/npm/v/easy3d.svg)
 ![npm](https://img.shields.io/npm/dm/easy3d.svg)
 
-A 3D framework written by [kresdl](https://www.kresdl.com)
-
 #### Installation
 
 `npm i easy3d`
